@@ -1,0 +1,111 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.51.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 a45bbdd6cd65ecb71e37829b928f43757a496b03 Changes
+SHA1 5a37cbd12ba64f3c225d3e82d4c8cc1d672790cf MANIFEST
+SHA1 f1c958a0e9a2580656ae9290d360a1c0de6faac1 META.yml
+SHA1 d927a37094b757e4dad47b4203cf8e91a2cb07d9 Makefile.PL
+SHA1 12ae52fa6690c73c382920714f3fae6634f5496f README
+SHA1 d047ba05e0f3534bf214c81f43071f069c264729 examples/big.pl
+SHA1 d10a1160825104178a4e16186b933a1f7b237f37 examples/simple.css
+SHA1 4ff66d21679dcee70c7e940cb21b3a3c03f332b5 inc/Module/AutoInstall.pm
+SHA1 9f31e5cb0e95a57c9985ff7c63850003e6323f49 inc/Module/Install.pm
+SHA1 0fe8117bb54a818f0ea01f4f92223b81ff04f223 inc/Module/Install/AutoInstall.pm
+SHA1 05153f7b70e9501d54b3facb0bc8ee26b4966d6f inc/Module/Install/Base.pm
+SHA1 0042521215c263d69885b45d45cea00689270aca inc/Module/Install/Can.pm
+SHA1 427e2feb48202adfd58eeb7c583b69deac43d792 inc/Module/Install/Fetch.pm
+SHA1 dd33db63e1b8f9ea3be0031889b9def9ac5a3fd2 inc/Module/Install/Include.pm
+SHA1 53ec499a40338066962b8d27f2e5a8c1de285bb1 inc/Module/Install/Makefile.pm
+SHA1 226436c6ddd5dd62a36a1e81086e76c7d5db8495 inc/Module/Install/Metadata.pm
+SHA1 d657161090f078b49b9035db383b6d2eb26561ff inc/Module/Install/Win32.pm
+SHA1 fca2129e567b9dbbef5cc4a216e436aae9717824 inc/Module/Install/WriteAll.pm
+SHA1 dcb7d52d8d096aaf47223e63beb340b0a198dcb8 lib/HTML/Widget.pm
+SHA1 5c6641a4b09814d8e809595252b6fd5e51f628b3 lib/HTML/Widget/Accessor.pm
+SHA1 aea824f0d9e2fee92156f4c24206af98037c1489 lib/HTML/Widget/Constraint.pm
+SHA1 f5c45f71163eac4b3531ae8b467b06362dc4c921 lib/HTML/Widget/Constraint/ASCII.pm
+SHA1 cc0c14c3a46dddf074ef2afcbeebcf9570dbe46d lib/HTML/Widget/Constraint/All.pm
+SHA1 fbff7f75b220537b400b67ee7b780f2a565dafb9 lib/HTML/Widget/Constraint/Any.pm
+SHA1 a5ca11034174f14888703d91e90f305f1a186fee lib/HTML/Widget/Constraint/Callback.pm
+SHA1 f855b061a2139aa7c82504ee6dd85677a988b273 lib/HTML/Widget/Constraint/Date.pm
+SHA1 f01fed817b43be41f3b6a084f06675f46f80afe5 lib/HTML/Widget/Constraint/DateTime.pm
+SHA1 4ad61bb42879dd47c05736e5310fd8e718d42d84 lib/HTML/Widget/Constraint/Email.pm
+SHA1 ee3452f93600f535f84e40685124d6c9d8a66ff6 lib/HTML/Widget/Constraint/Equal.pm
+SHA1 721ebc99bc197e537c04e34cc5a9ee40693f5abb lib/HTML/Widget/Constraint/HTTP.pm
+SHA1 c424e442d3a76f5e223d8abf7fcd462e52f67ed1 lib/HTML/Widget/Constraint/Integer.pm
+SHA1 384f866eeb47a82d3baf381028f6abd712d02921 lib/HTML/Widget/Constraint/Length.pm
+SHA1 8d24b37f50f05be7be25f561154a2ad790b3c572 lib/HTML/Widget/Constraint/Maybe.pm
+SHA1 56fd8046f2c33009e8ac873cd61c61b458bd2dcc lib/HTML/Widget/Constraint/Printable.pm
+SHA1 33c1319dd56288810d8e3a143ff6c07b1b67ca85 lib/HTML/Widget/Constraint/Range.pm
+SHA1 1bcafa578b80aa0450f4b053cf70ee707fd0b52d lib/HTML/Widget/Constraint/Regex.pm
+SHA1 e12eafdb893fe91afb6e026ada4d8441ca12e0a6 lib/HTML/Widget/Constraint/String.pm
+SHA1 dcad836f2f0894563550b2b89ef2b4c9bb4ef60a lib/HTML/Widget/Constraint/Time.pm
+SHA1 813793eee3b894e2fa252505f75f884549708252 lib/HTML/Widget/Container.pm
+SHA1 50ac779165f3f1135195042c908286363c940863 lib/HTML/Widget/Element.pm
+SHA1 44a11bd77e31e4a537fac44ae7aadc0c729f4779 lib/HTML/Widget/Element/Checkbox.pm
+SHA1 ae99aef9dd8eaefd24fd3ad1898ea96d21bef0a9 lib/HTML/Widget/Element/Hidden.pm
+SHA1 67711f3fe17194567c1c4695420ec0a1a561d6e9 lib/HTML/Widget/Element/Password.pm
+SHA1 14e56089679055cf1fddd1bf0997a7ddc8ca2eaf lib/HTML/Widget/Element/Radio.pm
+SHA1 584ce571404786420641bf3d15ac65c686d587a2 lib/HTML/Widget/Element/Select.pm
+SHA1 c9f94945a52ff2031d98083405790828912c54b9 lib/HTML/Widget/Element/Span.pm
+SHA1 9c581794bb86762048bb9477c0e88a80960da2f4 lib/HTML/Widget/Element/Submit.pm
+SHA1 64f6375cd72baa235430a2fea7940853c84aad4f lib/HTML/Widget/Element/Textarea.pm
+SHA1 f3ea59ca8eb87346d5f604a3920b365bb35805eb lib/HTML/Widget/Element/Textfield.pm
+SHA1 d02f643935d94d8721ad4d6c4f2691049b075869 lib/HTML/Widget/Element/Upload.pm
+SHA1 172dbfdc19f1824135e302f400602a6cad9237c7 lib/HTML/Widget/Error.pm
+SHA1 0763d36427ed312ac7cc07702224b82ef69d6224 lib/HTML/Widget/Filter.pm
+SHA1 f3aa3df3bcdc8b3f6f40a837559c4125e8bf5c13 lib/HTML/Widget/Filter/TrimEdges.pm
+SHA1 7e3c7a88a9662db63a6021f2986dfcf12683f6f5 lib/HTML/Widget/Filter/Whitespace.pm
+SHA1 c63dbff6373849e036b3d8c3ad80eb95672570a5 lib/HTML/Widget/Result.pm
+SHA1 296085b838de40e02a5dc2320c3f45b384dd70d1 t/01use.t
+SHA1 86d255a7c9f065a13049108362c949b3e35a4c24 t/02pod.t
+SHA1 e923679a1bbd8eb8f727e46f5906af25de27ec97 t/03podcoverage.t
+SHA1 7276c5377d2ac657237e01977fba8b3f816e438c t/04basic.t
+SHA1 6c611f6ca4da3fb9a59b9f016092b9f4a0aeba22 t/05strict.t
+SHA1 d376336d6383b21262382eee96c95c5932b1472d t/constraint_all.t
+SHA1 b2861f5139bf6b1d89bb2e8bdf3070425b14a7d3 t/constraint_any.t
+SHA1 73048990c06cda02a5fff52217649c8897bb1fa0 t/constraint_ascii.t
+SHA1 6648a8dfe3e5a4e2ad3afe4ad4ce7b2825e29d5f t/constraint_callback.t
+SHA1 a2d02fa9d0877de4c8570c3f076e630def320f90 t/constraint_date.t
+SHA1 1ab46f0ce7b43448afaff4cd8f425d162d3e913a t/constraint_datetime.t
+SHA1 7f8278a1f5180882cf01103af9badd9639aaf4a0 t/constraint_email.t
+SHA1 2eb1df0ef6d5c77e09cb4a8d363baa7a615d8b4f t/constraint_equal.t
+SHA1 755f62b6ad9662291adfdbad919037553bcf3ca9 t/constraint_http.t
+SHA1 c7e88e461976a1dd40b8c9688e37f97c99f975fc t/constraint_integer.t
+SHA1 50460f1a9156f1e671975b0110ebbff6e5ba4bfa t/constraint_length.t
+SHA1 14a5fd798b349257d982d6339a04a48c0d022706 t/constraint_printable.t
+SHA1 a2c6d7e0e405862f4c7dd52ac0a677f4a01c9716 t/constraint_range.t
+SHA1 2b81f4978f0dcab16666556150f751e6ecd66422 t/constraint_regex.t
+SHA1 b5324bc7818366fe8ce9267fd3c43208e646a702 t/constraint_string.t
+SHA1 834d71d27d74660e2bde45838db8be0670e2949a t/constraint_time.t
+SHA1 8024cf3ef3f86cfd89d20a1b8950c23bc49e400e t/element_checkbox.t
+SHA1 0e2c95b76449cfb27dec10158aed5202a910e0fd t/element_hidden.t
+SHA1 8f826ea5e01234fb88854dc94384ae890174ed60 t/element_password.t
+SHA1 9148a50f9b3fe5cc99f5e6ccff615b27a43c18dd t/element_radio.t
+SHA1 726b3c8dc3bea4e7b6e0cfc22805596450ab11fc t/element_select.t
+SHA1 d5221a9b2d0d67ba73d8af8f00c66ddc88b1c13c t/element_span.t
+SHA1 24017895b5e60cf920c21b6f9916c683ff33ffce t/element_submit.t
+SHA1 a9a294e2d17f902e1d12354eb0c4239d694c2c1e t/element_textarea.t
+SHA1 b2ff7b288a58318478efdce3218a047c03f04efc t/element_textfield.t
+SHA1 5e16ad8cbbe026dd04f2b89ca4c76d2ea405ab0f t/element_upload.t
+SHA1 b1b0acbf12d724a824f6340a6c03f683969ba2ce t/filter_trimedges.t
+SHA1 56a1a56db87a785d9b5709c1ebbc9c0138b4b05c t/filter_whitespace.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (Darwin)
+
+iD8DBQFDxHEcuYuAvGwCjGIRAutDAJ4wHw4EGaQtSEXc/ffE/n1phZ0quACfQPwn
+yxGp/NVGI5QoCh6sqcySHBY=
+=e5St
+-----END PGP SIGNATURE-----
