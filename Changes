@@ -1,8 +1,7 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
-        - Added 'match' constraint. 
-        - lc class names
-        - add option to show empty error containers.
+1.01  2006-01-11 00:00:00
+        - Fixed some typos
 
 1.0  2005-11-30 22:00:00 2005
         - first development release

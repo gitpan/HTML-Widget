@@ -14,9 +14,9 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 a45bbdd6cd65ecb71e37829b928f43757a496b03 Changes
+SHA1 0f0a7a5c021b2d2d642c773e22d324019171a5c1 Changes
 SHA1 5a37cbd12ba64f3c225d3e82d4c8cc1d672790cf MANIFEST
-SHA1 f1c958a0e9a2580656ae9290d360a1c0de6faac1 META.yml
+SHA1 5a7112d17c54bf52629f8e248f539205956267d2 META.yml
 SHA1 d927a37094b757e4dad47b4203cf8e91a2cb07d9 Makefile.PL
 SHA1 12ae52fa6690c73c382920714f3fae6634f5496f README
 SHA1 d047ba05e0f3534bf214c81f43071f069c264729 examples/big.pl
@@ -32,7 +32,7 @@ SHA1 53ec499a40338066962b8d27f2e5a8c1de285bb1 inc/Module/Install/Makefile.pm
 SHA1 226436c6ddd5dd62a36a1e81086e76c7d5db8495 inc/Module/Install/Metadata.pm
 SHA1 d657161090f078b49b9035db383b6d2eb26561ff inc/Module/Install/Win32.pm
 SHA1 fca2129e567b9dbbef5cc4a216e436aae9717824 inc/Module/Install/WriteAll.pm
-SHA1 dcb7d52d8d096aaf47223e63beb340b0a198dcb8 lib/HTML/Widget.pm
+SHA1 861d2a543dcff722dc0650c2feb47a35ed1ad25a lib/HTML/Widget.pm
 SHA1 5c6641a4b09814d8e809595252b6fd5e51f628b3 lib/HTML/Widget/Accessor.pm
 SHA1 aea824f0d9e2fee92156f4c24206af98037c1489 lib/HTML/Widget/Constraint.pm
 SHA1 f5c45f71163eac4b3531ae8b467b06362dc4c921 lib/HTML/Widget/Constraint/ASCII.pm
@@ -105,7 +105,7 @@ SHA1 56a1a56db87a785d9b5709c1ebbc9c0138b4b05c t/filter_whitespace.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (Darwin)
 
-iD8DBQFDxHEcuYuAvGwCjGIRAutDAJ4wHw4EGaQtSEXc/ffE/n1phZ0quACfQPwn
-yxGp/NVGI5QoCh6sqcySHBY=
-=e5St
+iD8DBQFDxHXCuYuAvGwCjGIRAkt4AJoDvOyGxlh6H/PPe4B5TiyZ3xiPhgCgpqFp
+E3nmkHv5nV+H4xbRr7vNP3E=
+=lTQc
 -----END PGP SIGNATURE-----

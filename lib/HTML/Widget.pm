@@ -21,7 +21,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.0';
+our $VERSION = '1.01';
 
 =head1 NAME
 
@@ -129,12 +129,12 @@ HTML::Widget - HTML Widget And Validation Framework
                     <input id="widget_age" name="age" size="3" type="text"
                       value="24" class="Textfield" />
                 </span>
-                <span class="error_messages" id="widget_age_errors">
-                    <span class="Regex_errors" id="widget_age_error_Regex">
-                        Contains digit characters.
-                    </span>
-                </span>
             </label>
+            <span class="error_messages" id="widget_age_errors">
+                <span class="Regex_errors" id="widget_age_error_Regex">
+                    Contains digit characters.
+                </span>
+            </span>
             <label for="widget_name" id="widget_name_label">
                 Name
                 <input id="widget_name" name="name" size="60" type="text"
