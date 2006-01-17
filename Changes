@@ -1,5 +1,8 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.03 2006-01-17 22:00:00
+        - Fixed missing files
+
 1.02 2006-01-17 22:00:00
         - Fixed multiple value filter
         - Pod fixes

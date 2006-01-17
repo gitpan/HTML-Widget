@@ -46,7 +46,12 @@ lib/HTML/Widget/Element/Textfield.pm
 lib/HTML/Widget/Element/Upload.pm
 lib/HTML/Widget/Error.pm
 lib/HTML/Widget/Filter.pm
+lib/HTML/Widget/Filter/Callback.pm
+lib/HTML/Widget/Filter/HTMLEscape.pm
+lib/HTML/Widget/Filter/HTMLStrip.pm
+lib/HTML/Widget/Filter/LowerCase.pm
 lib/HTML/Widget/Filter/TrimEdges.pm
+lib/HTML/Widget/Filter/UpperCase.pm
 lib/HTML/Widget/Filter/Whitespace.pm
 lib/HTML/Widget/Result.pm
 Makefile.PL
@@ -84,5 +89,10 @@ t/element_submit.t
 t/element_textarea.t
 t/element_textfield.t
 t/element_upload.t
+t/filter_callback.t
+t/filter_htmlescape.t
+t/filter_htmlstrip.t
+t/filter_lowercase.t
 t/filter_trimedges.t
+t/filter_uppercase.t
 t/filter_whitespace.t

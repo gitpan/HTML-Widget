@@ -21,7 +21,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 =head1 NAME
 

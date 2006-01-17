@@ -18,4 +18,4 @@ requires:
   Storable: 0
   Test::MockObject: 0
   perl: 5.8.1
-version: 1.02
+version: 1.03
