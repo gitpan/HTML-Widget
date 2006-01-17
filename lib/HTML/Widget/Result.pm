@@ -5,6 +5,7 @@ use strict;
 use base 'HTML::Widget::Accessor';
 use HTML::Widget::Container;
 use HTML::Element;
+use Storable 'dclone';
 
 __PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict/);
 __PACKAGE__->mk_attr_accessors(qw/action enctype id method empty_errors/);
@@ -53,6 +54,8 @@ sub as_xml {
     $c->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );
 
+    my $params = dclone $self->{_params};
+
     my %javascript;
     if ( @{ $self->{_embedded} } ) {
         for my $embedded ( @{ $self->{_embedded} } ) {
@@ -75,13 +78,13 @@ sub as_xml {
             }
             my $oldname = $embedded->name;
             for my $element ( @{ $embedded->{_elements} } ) {
-                my $value  = undef;
-                my $name   = $element->{name};
-                my $params = $self->{_params};
+                my $value = undef;
+                my $name  = $element->{name};
                 $value = $params->{$name} if ( $name && $params );
                 my $container =
                   $element->render( $embedded, $value,
                     $self->{_errors}->{$name} );
+                $params->{$name} = $value;
                 $container->{javascript} ||= '';
                 $container->{javascript} .= $javascript{$name}
                   if $javascript{$name};
@@ -107,12 +110,12 @@ sub as_xml {
             $sc->push_content($l);
         }
         for my $element ( @{ $self->{_elements} } ) {
-            my $value  = undef;
-            my $name   = $element->{name};
-            my $params = $self->{_params};
+            my $value = undef;
+            my $name  = $element->{name};
             $value = $params->{$name} if ( $name && $params );
             my $container =
               $element->render( $self, $value, $self->{_errors}->{$name} );
+            $params->{$name} = $value;
             $container->{javascript} ||= '';
             $container->{javascript} .= $javascript{$name}
               if $javascript{$name};
@@ -132,6 +135,7 @@ Contains the container tag.
 Contains the form encoding type.
 
 =head2 $self->error( $name, $type )
+
 =head2 $self->errors( $name, $type )
 
 Returns a list of L<HTML::Widget::Error> objects.
@@ -157,6 +161,7 @@ sub errors {
 }
 
 =head2 $self->element($name)
+
 =head2 $self->elements($name)
 
 Returns a L<HTML::Widget::Container> object for element
@@ -176,15 +181,16 @@ sub elements {
             $javascript{$key} .= $javascript->{$key} if $javascript->{$key};
         }
     }
+    my $params = dclone $self->{_params};
     my @form;
     for my $element ( @{ $self->{_elements} } ) {
         my $value = undef;
         my $ename = $element->{name};
         next if ( ($name) && ( $ename ne $name ) );
-        my $params = $self->{_params};
         $value = $params->{$ename} if ( $ename && $params );
         my $container =
           $element->render( $self, $value, $self->{_errors}->{$ename} );
+        $params->{$name} = $value;
         $container->{javascript} ||= '';
         $container->{javascript} .= $javascript{$ename} if $javascript{$ename};
         return $container if $name;
@@ -198,7 +204,9 @@ sub elements {
 Create spans for errors even when there's no errors.. (For AJAX validation validation)
 
 =head2 $self->has_error($name);
+
 =head2 $self->has_errors($name);
+
 =head2 $self->have_errors($name);
 
 Returns a list of element names.
@@ -262,6 +270,7 @@ sub param {
 }
 
 =head2 $self->params($params)
+
 =head2 $self->parameters($params)
 
 Returns validated params as hashref.

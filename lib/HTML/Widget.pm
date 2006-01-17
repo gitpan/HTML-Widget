@@ -21,7 +21,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 NAME
 
@@ -178,6 +178,7 @@ sub new {
 Contains the form action.
 
 =head2 $self->const($tag)
+
 =head2 $self->container($tag)
 
 Contains the container tag to use.
@@ -204,6 +205,7 @@ sub constraint {
 }
 
 =head2 $self->elem( $type, $name )
+
 =head2 $self->element( $type, $name )
 
 Returns a L<HTML::Widget::Element> object.
@@ -270,6 +272,7 @@ sub filter {
 Contains the widget id.
 
 =head2 $self->indi($indicator)
+
 =head2 $self->indicator($indicator)
 
 Contains the submitted form indicator.
@@ -302,6 +305,7 @@ sub merge {
 Contains the form method.
 
 =head2 $self->result( $query, $uploads )
+
 =head2 $self->process( $query, $uploads )
 
 Returns a L<HTML::Widget::Result> object.

@@ -37,6 +37,8 @@ sub new {
 sub render {
     my ( $self, $w, $value ) = @_;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     $value ||= $self->value;
     my $i = $self->mk_input( $w, { type => 'submit', value => $value } );
 

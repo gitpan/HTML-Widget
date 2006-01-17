@@ -69,6 +69,6 @@ $w3->filter('TrimEdges');
         sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
     my $f = $w3->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="baz bar foo" /></span></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><input class="textfield" id="widget_bar" name="bar" type="text" value="32" /></fieldset></form>
+<form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo bar baz" /></span></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><input class="textfield" id="widget_bar" name="bar" type="text" value="23" /></fieldset></form>
 EOF
 }

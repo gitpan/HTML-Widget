@@ -33,6 +33,8 @@ Upload Element.
 sub render {
     my ( $self, $w, $value, $errors ) = @_;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
     my $i = $self->mk_input( $w, { type => 'file', value => $value }, $errors );
     $l ? ( $l->push_content($i) ) : ( $l = $i );

@@ -10,6 +10,8 @@ requires 'Class::Accessor::Chained::Fast';
 requires 'Email::Valid';
 requires 'Date::Calc';
 requires 'Test::MockObject';
+requires 'HTML::Scrubber';
+requires 'Storable';
 
 auto_install;
 &WriteAll;

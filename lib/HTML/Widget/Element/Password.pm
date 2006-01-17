@@ -33,6 +33,8 @@ Password Element.
 sub render {
     my ( $self, $w, $value, $errors ) = @_;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     $value = undef unless $self->fill;
     $value ||= $self->value;
 

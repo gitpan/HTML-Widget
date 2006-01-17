@@ -58,12 +58,13 @@ sub process {
     my @names = scalar @{ $self->names } ? @{ $self->names } : keys %$params;
     for my $name (@names) {
         my $values = $params->{$name};
-        my @values = ref $values eq 'ARRAY' ? @$values : ($values);
-        for my $value (@values) {
-            $params->{$name} = $self->filter($value);
+        if ( ref $values eq 'ARRAY' ) {
+            $params->{$name} = [ map { $self->filter($_); } @$values ];
+        }
+        else {
+            $params->{$name} = $self->filter($values);
         }
     }
-    use Data::Dumper;
 }
 
 =head1 AUTHOR

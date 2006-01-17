@@ -1,6 +1,12 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
-1.01  2006-01-11 00:00:00
+1.02 2006-01-17 22:00:00
+        - Fixed multiple value filter
+        - Pod fixes
+        - Added new filters. HTMLEscape, HTMLStrip, UpperCase, LowerCase,
+          and Callback
+
+1.01 2006-01-11 00:00:00
         - Fixed some typos
 
 1.0  2005-11-30 22:00:00 2005

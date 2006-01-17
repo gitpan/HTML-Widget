@@ -46,6 +46,8 @@ sub render {
 
     $value ||= $self->value;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
 
     $self->attributes->{class} ||= 'textarea';

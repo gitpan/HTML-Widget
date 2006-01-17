@@ -40,6 +40,8 @@ sub new {
 sub render {
     my ( $self, $w, $value, $errors ) = @_;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     my $checked = ( defined $value && $value eq $self->value ) ? 'checked' : 0;
     $checked = 'checked' if ( !defined $value && $self->checked );
     $value   = $self->value;

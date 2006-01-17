@@ -40,6 +40,8 @@ sub new {
 sub render {
     my ( $self, $w, $value, $errors ) = @_;
 
+    $value = ref $value eq 'ARRAY' ? shift @$value : $value;
+
     my $name = $self->name;
 
     # Search for multiple radio button with the same name

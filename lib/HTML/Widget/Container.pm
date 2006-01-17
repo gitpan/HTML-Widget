@@ -71,6 +71,7 @@ sub as_list {
 =head2 $self->element($element)
 
 =head2 $self->field_xml
+
 =head2 $self->element_xml
 
 Returns xml for element.
@@ -112,6 +113,7 @@ sub javascript_element {
 }
 
 =head2 $self->js_xml
+
 =head2 $self->javascript_xml
 
 Returns javascript in a script block.

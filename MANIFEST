@@ -86,4 +86,3 @@ t/element_textfield.t
 t/element_upload.t
 t/filter_trimedges.t
 t/filter_whitespace.t
-SIGNATURE                                Public-key signature (added by MakeMaker)
