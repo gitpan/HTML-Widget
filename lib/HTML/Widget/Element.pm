@@ -52,7 +52,7 @@ Creates a element id.
 
 sub id {
     my ( $self, $w, $id ) = @_;
-    return $w->name . '_' . ( $id || $self->name );
+    return $w->name  . '_' . ( $id || $self->name );
 }
 
 =head2 $self->init($widget)
@@ -72,7 +72,7 @@ Creates a new L<HTML::Widget::Error>.
 sub mk_error {
     my ( $self, $w, $errors ) = @_;
 
-    return if ( !$w->{empty_errors} && !defined($errors) || !scalar(@$errors) );
+    return if ( !$w->{empty_errors} && (!defined($errors) || !scalar(@$errors)) );
     my $id        = $self->attributes->{id} || $self->id($w);
     my $cont_id   = $id . '_errors';
     my $container =

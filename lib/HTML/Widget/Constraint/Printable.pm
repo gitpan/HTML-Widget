@@ -22,7 +22,7 @@ Printable Constraint.
 
 =cut
 
-sub regex { qr/^([\040-\377\r\n\t]*)$/ }
+sub regex { qr/^([[:print:]]*)$/ }
 
 =head1 AUTHOR
 

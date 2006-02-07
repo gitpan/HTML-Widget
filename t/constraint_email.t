@@ -1,4 +1,14 @@
-use Test::More tests => 7;
+use Test::More;
+
+BEGIN {
+  eval { require Email::Valid };
+  if ($@ =~ m{Can.t locate Email/Valid.pm}) {
+    plan skip_all => "The Email constraint requires Email::Valid";
+  } else {
+    plan tests => 7;
+  }
+}
+
 
 use Test::MockObject;
 

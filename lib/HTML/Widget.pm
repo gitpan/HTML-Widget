@@ -5,6 +5,7 @@ use strict;
 use base 'HTML::Widget::Accessor';
 use HTML::Widget::Result;
 use Scalar::Util 'blessed';
+use Carp qw/croak/;
 
 __PACKAGE__->mk_accessors(
     qw/container indicator legend query subcontainer uploads strict empty_errors/
@@ -21,7 +22,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 =head1 NAME
 
@@ -160,7 +161,10 @@ This Module is very powerful, don't misuse it as a template system!
 
 =head1 METHODS
 
-=head2 new
+=head2 new( [$name] )
+
+Create a new HTML::Widget object. The name parameter will be used as the 
+id of the form created by the to_xml method.
 
 =cut
 
@@ -175,23 +179,312 @@ sub new {
 
 =head1 $self->action($action)
 
-Contains the form action.
-
-=head2 $self->const($tag)
+Get/Set the action associated with the form.
 
 =head2 $self->container($tag)
 
-Contains the container tag to use.
+Get/Set the tag used to contain the XML output when as_xml is called on the
+HTML::Widget object.
 Defaults to C<form>.
+
+
+=head2 $self->elem( $type, $name )
+
+=head2 $self->element( $type, $name )
+
+Add a new element to the Widget. Each element must be given at least a type, 
+and a name. The name is used for an id attribute on the field created for the 
+element. An L<HTML::Widget::Element> object is returned, which can be used to
+set further attributes, please see the individual element classes for the 
+methods specific to each one.
+
+The type can be one of the following:
+
+=over 4
+
+=item L<HTML::Widget::Element::Checkbox>
+
+    my $e = $widget->element( 'Checkbox', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->checked('checked');
+    $e->value('bar');
+
+Add a standard checkbox element.
+
+=item L<HTML::Widget::Element::Hidden>
+
+    my $e = $widget->element( 'Hidden', 'foo' );
+    $e->value('bar');
+
+Add a hidden field. This field is mainly used for passing previously gathered
+data between multiple page forms.
+
+=item L<HTML::Widget::Element::Password>
+
+    my $e = $widget->element( 'Password', 'foo' );
+    $e->comment('(Required)');
+    $e->fill(1);
+    $e->label('Foo');
+    $e->size(23);
+    $e->value('bar');
+
+Add a password field. This is a text field that will not show the user what
+they are typing, but show asterisks instead.
+
+=item L<HTML::Widget::Element::Radio>
+
+    my $e = $widget->element( 'Radio', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->checked('checked');
+    $e->value('bar');
+
+Add a radio button to a group. Radio buttons with the same name will work as
+a group. That is, only one item in the group will be "on" at a time.
+
+=item L<HTML::Widget::Element::RadioGroup>
+
+    my $e = $widget->element( 'RadioGroup', 'name', ['foo', 'bar', 'baz'] );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->checked('bar');
+    $e->value('bar');
+
+This is a shortcut to add multiple radio buttons with the same name at the
+same time. See above. (Note that the C<checked> method has a different meaning
+here).
+
+=item L<HTML::Widget::Element::Reset>
+
+    $e = $widget->element( 'Reset', 'foo' );
+    $e->value('bar');
+
+Create a reset button. The text on the button will default to "Submit", unless
+you call the value() method. This button resets the form to its original
+values.
+
+=item L<HTML::Widget::Element::Select>
+
+    my $e = $widget->element( 'Select', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->size(23);
+    $e->options( foo => 'Foo', bar => 'Bar' );
+    $e->selected(qw/foo bar/);
+
+Create a dropdown  or multi-select list element with multiple options. Options 
+are supplied in a key => value list, in which the keys are the actual selected
+IDs, and the values are the strings displayed in the dropdown.
+
+=item L<HTML::Widget::Element::Span>
+
+    my $e = $widget->element( 'Span', 'foo' );
+    $e->content('bar');
+
+Create a simple span tag, containing the given content. Spans cannot be
+constrained as they are not entry fields.
+
+=item L<HTML::Widget::Element::Submit>
+
+    $e = $widget->element( 'Submit', 'foo' );
+    $e->value('bar');
+
+Create a submit button. The text on the button will default to "Submit", unless
+you call the value() method. 
+
+=item L<HTML::Widget::Element::Textarea>
+
+    my $e = $widget->element( 'Textarea', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->cols(30);
+    $e->rows(40);
+    $e->value('bar');
+    $e->wrap('wrap');
+
+Create a textarea field. This is a multi-line input field for text.
+
+=item L<HTML::Widget::Element::Textfield>
+
+    my $e = $widget->element( 'Textfield', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->size(23);
+    $e->maxlength(42);
+    $e->value('bar');
+
+Create a single line text field.
+
+=item L<HTML::Widget::Element::Upload>
+
+    my $e = $widget->element( 'Upload', 'foo' );
+    $e->comment('(Required)');
+    $e->label('Foo');
+    $e->accept('text/html');
+    $e->maxlength(1000);
+    $e->size(23);
+
+Create a field for uploading files. This will probably be rendered as a
+textfield, with a button for choosing a file.
+
+=back
+
+=cut
+
+sub element {
+    my ( $self, $type, $name ) = @_;
+    my $element =
+      $self->_instantiate( "HTML::Widget::Element::$type", { name => $name } );
+    push @{ $self->{_elements} }, $element;
+    return $element;
+}
+
+=head2 $self->const($tag)
 
 =head2 $self->constraint( $type, @names )
 
-Returns a L<HTML::Widget::Constraint> object.
+Set up a constraint on one or more elements. When process() is called on the
+Widget object, with a $query object, the parameters of the query are checked 
+against the specified constraints. The L<HTML::Widget::Constraint> object is 
+returned to allow setting of further attributes to be set. The string 'Not_' 
+can be prepended to each type name to negate the effects. Thus checking for a 
+non-integer becomes 'Not_Integer'.
+
+Constraint checking is done after L<HTML::Widget::Filter>s have been applied.
+
+@names should contain a list of element names that the constraint applies to. 
+The type of constraint can be one of:
+
+=over 4
+
+=item L<HTML::Widget::Constraint::All>
+
+    my $c = $widget->constraint( 'All', 'foo', 'bar' );
+
+The fields passed to the "All" constraint are those which are required fields
+in the form.
+
+=item L<HTML::Widget::Constraint::ASCII>
+
+    my $c = $widget->constraint( 'ASCII', 'foo' );
+
+The fields passed to this constraint will be checked to make sure their 
+contents contain ASCII characters.
+
+=item L<HTML::Widget::Constraint::Any>
+
+    my $c = $widget->constraint( 'Any', 'foo', 'bar' );
+
+At least one or more of the fields passed to this constraint must be filled.
+
+=item L<HTML::Widget::Constraint::Callback>
+
+    my $c = $widget->constraint( 'Callback', 'foo' )->callback(sub { 
+        my $value=shift;
+        return 1;
+    });
+
+This constraint allows you to provide your own callback sub for validation.
+
+=item L<HTML::Widget::Constraint::Date>
+
+    my $c = $widget->constraint( 'Date', 'year', 'month', 'day' );
+
+This constraint ensures that the three fields passed in are a valid date. The
+L<Date::Calc> module is required.
+
+=item L<HTML::Widget::Constraint::DateTime>
+
+    my $c =
+      $widget->constraint( 'DateTime', 'year', 'month', 'day', 'hour',
+        'minute', 'second' );
+
+This constraint ensures that the six fields passed in are a valid date and 
+time. The L<Date::Calc> module is required.
+
+=item L<HTML::Widget::Constraint::Email>
+
+    my $c = $widget->constraint( 'Email', 'foo' );
+
+Check that the field given contains a valid email address, according to RFC
+2822, using the L<Email::Valid> module.
+
+=item L<HTML::Widget::Constraint::Equal>
+
+    my $c = $widget->constraint( 'Equal', 'foo', 'bar' );
+
+The fields passed to this constraint must contain the same information, or
+be empty.
+
+=item L<HTML::Widget::Constraint::HTTP>
+
+    my $c = $widget->constraint( 'HTTP', 'foo' );
+
+This constraint checks that the field(s) passed in are valid URLs. The regex
+used to test this can be set manually using the ->regex method.
+
+=item L<HTML::Widget::Constraint::Integer>
+
+    my $c = $widget->constraint( 'Integer', 'foo' );
+
+Check that the field contents are an integer.
+
+=item L<HTML::Widget::Constraint::Length>
+
+    my $c = $widget->constraint( 'Length', 'foo' );
+    $c->min(23);
+    $c->max(50);
+
+Ensure that the contents of the field are at least $min long, and no longer
+than $max.
+
+=item L<HTML::Widget::Constraint::Maybe>
+
+    my $c = $widget->constraint( 'Maybe', 'foo', 'bar' );
+
+=item L<HTML::Widget::Constraint::Printable>
+
+    my $c = $widget->constraint( 'Printable', 'foo' );
+
+The contents of the given field must only be printable characters. The regex
+used to test this can be set manually using the ->regex method.
+
+=item L<HTML::Widget::Constraint::Range>
+
+    my $c = $widget->constraint( 'Range', 'foo' );
+    $c->min(23);
+    $c->max(30);
+
+The contents of the field must be numerically within the given range.
+
+=item L<HTML::Widget::Constraint::Regex>
+
+    my $c = $widget->constraint( 'Regex', 'foo' );
+    $c->regex(qr/^\w+$/);
+
+Tests the contents of the given field(s) against a user supplied regex.
+
+=item L<HTML::Widget::Constraint::String>
+
+    my $c = $widget->constraint( 'String', 'foo' );
+
+The field must only contain characters in \w. i.e. [a-zaZ0-9_]
+
+=item L<HTML::Widget::Constraint::Time>
+
+    my $c = $widget->constraint( 'Time', 'hour', 'minute', 'second' );
+
+The three fields passed to this constraint must constitute a valid time. The
+L<Date::Calc> module is required.
+
+=back
 
 =cut
 
 sub constraint {
     my ( $self, $type, @names ) = @_;
+    croak('constraint requires a constraint type') unless $type;
     my $not = 0;
     if ( $type =~ /^Not_(\w+)$/i ) {
         $not++;
@@ -204,26 +497,12 @@ sub constraint {
     return $constraint;
 }
 
-=head2 $self->elem( $type, $name )
-
-=head2 $self->element( $type, $name )
-
-Returns a L<HTML::Widget::Element> object.
-
-=cut
-
-sub element {
-    my ( $self, $type, $name ) = @_;
-    my $element =
-      $self->_instantiate( "HTML::Widget::Element::$type", { name => $name } );
-    push @{ $self->{_elements} }, $element;
-    return $element;
-}
-
 =head2 $self->embed(@widgets)
 
-Embed another widget.
-Note that this will change data in the embedded widgets!
+Insert the contents of another widget object into this one. Each embedded
+object will be represented as another set of fields (surrounded by a fieldset
+tag), inside the created form. No copy is made of the widgets to embed, thus
+calling as_xml on the resulting object will change data in the widget objects.
 
 =cut
 
@@ -245,13 +524,40 @@ sub embed {
 
 =head2 $self->empty_errors(1)
 
-Create spans for errors even when there's no errors.. (For AJAX validation validation)
+After validation, if errors are found, a span tag is created with the id 
+"fields_with_errors". Set this value to cause the span tag to always be 
+generated.
 
 =head2 $self->enctype($enctype)
 
-Contains the form encoding type.
+Set/Get the encoding type of the form. This can be either "application/x-www-form-urlencoded" which is the default, or "multipart/form-data".
+See L<http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4>.
 
 =head2 $self->filter( $type, @names )
+
+Add a filter. Like constraints, filters can be applied to one or more elements.
+These are applied to actually change the contents of the fields, supplied by
+the user before checking the constraints. It only makes sense to apply filters
+to fields that can contain text - Password, Textfield, Textarea, Upload.
+
+There are currently two types of filter:
+
+=over 4
+
+=item L<HTML::Widget::Filter::Whitespace>
+
+    my $f = $widget->filter( 'Whitespace', 'foo' );
+
+Removes all whitespace from the given field(s).
+
+=item L<HTML::Widget::Filter::TrimEdges>
+
+    my $f = $widget->filter( 'TrimEdges', 'foo' );
+
+Removes whitespace from the beginning and end of the given field(s).
+
+=back
+
 
 Returns a L<HTML::Widget::Filter> object.
 
@@ -275,15 +581,19 @@ Contains the widget id.
 
 =head2 $self->indicator($indicator)
 
-Contains the submitted form indicator.
+Set/Get a boolean field. This is a convenience method for the user, so they 
+can keep track of which of many Widget objects were submitted. It is also
+used by L<Catalyst::Plugin::HTML::Wdget>
 
 =head2 $self->legend($legend)
 
-Contains the legend name for this widget.
+Set/Get a legend for this widget. This tag is used to label the fieldset. 
 
 =head2 $self->merge(@widget)
 
-Merge in another widget.
+Merge elements, constraints and filters from other widgets, into this one. The
+elements will be added to the end of the list of elements that have been set
+already.
 
 =cut
 
@@ -302,13 +612,17 @@ sub merge {
 
 =head2 $self->method($method)
 
-Contains the form method.
+Set/Get the method used to submit the form. an be set to either "post" or
+"get". The default is "post".
 
 =head2 $self->result( $query, $uploads )
 
 =head2 $self->process( $query, $uploads )
 
-Returns a L<HTML::Widget::Result> object.
+After finishing setting up the widget and all its elements, call either 
+process() or result() to create an L<HTML::Widget::Result>. If passed a $query
+it will run filters and validation on the parameters. The Result object can
+then be used to produce the HTML.
 
 =cut
 
@@ -356,13 +670,13 @@ sub process {
     }
     my %params;
     if ($query) {
-        die "Invalid query object"
+        croak "Invalid query object"
           unless blessed($query)
           and $query->can('param');
         my @params = $query->param;
         for my $param (@params) {
-            my $value = $query->param($param);
-            $params{$param} = $value;
+            my @values = $query->param($param);
+            $params{$param} = @values > 1 ? \@values : $values[0];
         }
         for my $filter ( @{ $self->{_filters} } ) {
             $filter->process( \%params, $uploads );
@@ -394,13 +708,15 @@ sub process {
             subcontainer  => $self->subcontainer,
             strict        => $self->strict,
             empty_errors  => $self->empty_errors,
+            submitted     => ($query ? 1 : 0),
         }
     );
 }
 
 =head2 $self->query($query)
 
-Contains the query object to use for validation input.
+Set/Get the query object to use for validation input. The query object can also
+be passed to the process method directly.
 
 =head2 $self->strict($strict)
 
@@ -408,25 +724,25 @@ Only consider parameters that pass at least one constraint valid.
 
 =head2 $self->subcontainer($tag)
 
-Contains the subcontainer tag to use.
+Set/Get the subcontainer tag to use.
 Defaults to C<fieldset>.
 
 =head2 $self->uploads($uploads)
 
-Contains a arrayref of L<Apache2::Upload> compatible objects.
+Contains an arrayref of L<Apache2::Upload> compatible objects.
 
 =cut
 
 sub _instantiate {
     my ( $self, $class, @args ) = @_;
     eval "require $class";
-    die qq/Couldn't to load class "$class", "$@"/ if $@;
+    croak qq/Couldn't load class "$class", "$@"/ if $@;
     return $class->new(@args);
 }
 
 =head1 SEE ALSO
 
-L<Catalyst>
+L<Catalyst> L<Catalyst::Plugin::HTML::Widget> L<HTML::Element>
 
 =head1 AUTHOR
 

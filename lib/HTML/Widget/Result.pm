@@ -7,7 +7,7 @@ use HTML::Widget::Container;
 use HTML::Element;
 use Storable 'dclone';
 
-__PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict/);
+__PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict submitted/);
 __PACKAGE__->mk_attr_accessors(qw/action enctype id method empty_errors/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
@@ -21,6 +21,7 @@ use overload '""' => sub { return shift->as_xml }, fallback => 1;
 *parameters  = \&params;
 *tag         = \&container;
 *subtag      = \&subcontainer;
+*is_submitted = \&submitted;
 
 =head1 NAME
 
@@ -328,6 +329,18 @@ sub valid {
     return @valid unless $name;
     return 1 if grep { /$name/ } @valid;
     return 0;
+}
+
+=head2 add_valid <key>,<value>
+
+Adds another valid value to the hash.
+
+=cut 
+
+sub add_valid {
+    my  ($self, $key, $value ) = @_;
+    $self->{_params}->{$key}=$value;
+    return $value;
 }
 
 =head1 AUTHOR

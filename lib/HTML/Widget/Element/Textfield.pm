@@ -5,7 +5,7 @@ use strict;
 use base 'HTML::Widget::Element';
 
 __PACKAGE__->mk_accessors(qw/comment label value/);
-__PACKAGE__->mk_attr_accessors(qw/size/);
+__PACKAGE__->mk_attr_accessors(qw/size maxlength/);
 
 =head1 NAME
 
@@ -17,6 +17,7 @@ HTML::Widget::Element::Textfield - Textfield Element
     $e->comment('(Required)');
     $e->label('Foo');
     $e->size(23);
+    $e->maxlength(42);
     $e->value('bar');
 
 =head1 DESCRIPTION

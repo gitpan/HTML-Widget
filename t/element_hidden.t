@@ -25,7 +25,26 @@ EOF
     my $query = Test::MockObject->new;
     my $data = { foo => 'yada', bar => '23' };
     $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+       sub {
+           my ( $self, $param ) = @_;
+           if ( @_ == 1 ) { return keys %$data }
+           else {
+               unless ( exists $data->{$param} ) {
+                   return wantarray ? () : undef;
+               }
+               if ( ref $data->{$param} eq 'ARRAY' ) {
+                   return (wantarray)
+                     ? @{ $data->{$param} }
+                     : $data->{$param}->[0];
+               }
+               else {
+                   return (wantarray)
+                     ? ( $data->{$param} )
+                     : $data->{$param};
+               }
+           }
+       } 
+    );
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><input class="hidden" id="widget_foo" name="foo" type="hidden" value="yada" /><input class="hidden" id="widget_bar" name="bar" type="hidden" value="23" /></fieldset></form>

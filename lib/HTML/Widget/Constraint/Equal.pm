@@ -14,7 +14,8 @@ HTML::Widget::Constraint::Equal - Equal Constraint
 
 =head1 DESCRIPTION
 
-Equal Constraint. All elements must be the same.
+Equal Constraint. All provided elements must be the same. Combine this
+with the All constraint to make sure all elements are equal.
 
 =head1 METHODS
 
@@ -27,10 +28,6 @@ sub process {
     my $results = [];
     my $equal=$params->{${$self->names}[0]};
     for my $name ( @{ $self->names } ) {
-
-        # Return valid if we encounter a blank param
-        return [] if $params->{$name} eq '';
-
         push @$results,
           HTML::Widget::Error->new(
             { name => $name, message => $self->mk_message } )

@@ -1,21 +1,23 @@
 abstract: HTML Widget And Validation Framework
 author: 'Sebastian Riedel, C<sri@oook.de>'
+build_requires:
+  Test::MockObject: 0
 distribution_type: module
-generated_by: Module::Install version 0.54
+generated_by: Module::Install version 0.55
 license: perl
 name: HTML-Widget
 no_index:
   directory:
     - inc
     - t
+recommends:
+  Date::Calc: 0
+  Email::Valid: 0
 requires:
   Class::Accessor::Chained::Fast: 0
   Class::Accessor::Fast: 0
-  Date::Calc: 0
-  Email::Valid: 0
   HTML::Element: 0
   HTML::Scrubber: 0
   Storable: 0
-  Test::MockObject: 0
   perl: 5.8.1
-version: 1.03
+version: 1.04

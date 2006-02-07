@@ -1,4 +1,4 @@
-#line 1 "/Users/sri/src/svk/Catalyst/trunk/HTML-Widget/inc/Module/Install.pm - /Library/Perl/5.8.6/Module/Install.pm"
+#line 1 "/usr/src/perl/catalyst/trunk/HTML-Widget/inc/Module/Install.pm - /usr/lib/perl5/site_perl/5.8.4/Module/Install.pm"
 package Module::Install;
 
 use 5.004;
@@ -6,7 +6,7 @@ use strict 'vars';
 use vars qw{$VERSION};
 BEGIN {
     # Don't forget to update Module::Install::Admin too!
-    $VERSION = '0.54';
+    $VERSION = '0.55';
 }
 
 # inc::Module::Install must be loaded first

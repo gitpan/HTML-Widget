@@ -1,4 +1,5 @@
-use Test::More tests => 7;
+use utf8;
+use Test::More tests => 13;
 
 use Test::MockObject;
 
@@ -56,3 +57,13 @@ EOF
     my $f = $w->process($query);
     is( $f->valid('foo'), 0, "Invalid" );
 }
+
+my $c = HTML::Widget::Constraint::Printable->new;
+
+ok( $c->validate( "foo" ), "alpha");
+ok( $c->validate( "foo bar" ), "alpha, space");
+ok( $c->validate( ",la; bar" ), "punct");
+ok( $c->validate( "יובל" ), "hebrew");
+ok( !$c->validate( "\x00" ), "zero");
+ok( !$c->validate( "\xb" ), "backspace");
+

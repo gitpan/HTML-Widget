@@ -4,6 +4,8 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Element';
 
+*value = \&selected;
+
 __PACKAGE__->mk_accessors(qw/comment label options selected/);
 __PACKAGE__->mk_attr_accessors(qw/size/);
 
@@ -26,6 +28,31 @@ Select Element.
 
 =head1 METHODS
 
+=head2 comment
+
+Add a comment to this Element.
+
+=head2 label
+
+This label will be placed next to your Element.
+
+=head2 size
+
+The size of a select element determines whether it will be displayed as a 
+dropdown (size = 1), or a multi-select list element. The default is 1.
+
+=head2 options
+
+A list of options in key => value format. Each key is the unique id of an
+option tag, and its corresponding value is the text displayed in the element.
+
+=head2 selected
+
+=head2 value (alias)
+
+A list of keys (unique option ids) which will be pre-set to "selected".
+Can also be addressed as value for consistency with the other elements
+
 =head2 $self->render( $widget, $value, $errors )
 
 =cut
@@ -35,7 +62,6 @@ sub render {
 
     my $options = $self->options;
     my @options = ref $options eq 'ARRAY' ? @$options : ();
-    my %options = (@options);
     my @o;
     my @values;
     if ($value) {
@@ -47,11 +73,19 @@ sub render {
           ? @{ $self->selected }
           : ( $self->selected );
     }
-    for my $key ( keys %options ) {
-        my $value = $options{$key};
+
+    # You might be tempted to say 'while ( my $key = shift( @temp_options ) )'
+    # here, but then that falls if the first element is a 0 :-) So we do the
+    # following bit of nastiness instead:
+
+    my @temp_options = @options;
+    while ( scalar @temp_options ) {
+
+        my $key    = shift(@temp_options);
+        my $value  = shift(@temp_options);
         my $option = HTML::Element->new( 'option', value => $key );
         for my $val (@values) {
-            if ( defined $val && $val eq $key ) {
+            if ( ( defined $val ) && ( $val eq $key ) ) {
                 $option->attr( selected => 'selected' );
                 last;
             }
@@ -60,23 +94,28 @@ sub render {
         push @o, $option;
     }
 
-    my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
+    my $label = $self->mk_label( $w, $self->label, $self->comment, $errors );
 
     $self->attributes->{class} ||= 'select';
-    my $i = HTML::Element->new('select');
-    $i->push_content(@o);
-    $l ? ( $l->push_content($i) ) : ( $l = $i );
-    my $id = $self->id($w);
-    $i->attr( id   => $id );
-    $i->attr( name => $self->name );
+    my $selectelm = HTML::Element->new('select');
+    $selectelm->push_content(@o);
+    if ($label) {
+        $label->push_content($selectelm);
+    }
 
-    $i->attr( $_ => ${ $self->attributes }{$_} )
+    #    $l ? ( $l->push_content($i) ) : ( $l = $i );
+    my $id = $self->id($w);
+    $selectelm->attr( id   => $id );
+    $selectelm->attr( name => $self->name );
+
+    $selectelm->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );
-    $l->push_content($i);
+
+    #    $l->push_content($i);
 
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $l, error => $e } );
+    return $self->container( { element => $label || $selectelm, error => $e } );
 }
 
 =head1 AUTHOR

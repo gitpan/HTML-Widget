@@ -1,4 +1,4 @@
-use Test::More tests => 30;
+use Test::More tests => 33;
 
 use Test::MockObject;
 
@@ -58,6 +58,13 @@ EOF
     is( $f->params->{name},    'sri', 'Param name is defined' );
     is( $f->params->{age},     undef, 'Param age is not defined' );
     is( $f->parameters->{foo}, undef, 'Param foo is not defined' );
+
+    $f->add_valid('bar','dude');
+
+    is( $f->params->{bar}, 'dude','Bar is dude');
+    is ($f->param('bar'), 'dude','Bar is dude');
+    is ($f->valid('bar'), 1,'Bar is valid');
+    
 
     my $c = $f->element('age');
     isa_ok( $c, 'HTML::Widget::Container', 'Element is a container object' );

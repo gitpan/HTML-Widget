@@ -27,7 +27,26 @@ EOF
     my $query = Test::MockObject->new;
     my $data = { foo => 'yada', bar => '23' };
     $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+       sub {
+           my ( $self, $param ) = @_;
+           if ( @_ == 1 ) { return keys %$data }
+           else {
+               unless ( exists $data->{$param} ) {
+                   return wantarray ? () : undef;
+               }
+               if ( ref $data->{$param} eq 'ARRAY' ) {
+                   return (wantarray)
+                     ? @{ $data->{$param} }
+                     : $data->{$param}->[0];
+               }
+               else {
+                   return (wantarray)
+                     ? ( $data->{$param} )
+                     : $data->{$param};
+               }
+           }
+       } 
+    );
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label"><span class="fields_with_errors"><input class="radio" id="widget_foo" name="foo" type="radio" value="foo" /></span>Foo</label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><label for="widget_bar_1" id="widget_bar_1_label"><input checked="checked" class="radio" id="widget_bar_1" name="bar" type="radio" value="23" />Bar</label><label for="widget_bar_2" id="widget_bar_2_label"><input class="radio" id="widget_bar_2" name="bar" type="radio" value="1" />Bar2</label><label for="widget_bar_3" id="widget_bar_3_label"><input class="radio" id="widget_bar_3" name="bar" type="radio" value="1" />Bar3</label></fieldset></form>

@@ -28,19 +28,28 @@ DateTime Constraint.
 sub process {
     my ( $self, $w, $params ) = @_;
 
-    return []
-      unless ( $self->names && @{ $self->names } == 6 );
+# PS: Commented out. What if I don't want to provide time? I could use
+# 'Date', but, all these fields are allowed to be 0 anyway. And I may
+# not want to check seconds or minutes. So we'll change this to #3
+
+#    return []
+#      unless ( $self->names && @{ $self->names } == 6 );
+    return [] unless ( $self->names && @{ $self->names } >= 3 );
 
     my ( $year, $month, $day, $hour, $min, $sec ) = @{ $self->names };
-    my $y  = $params->{$year};
+    my $y  = $params->{$year}; # 0 is a valid year, but Date::Calc doesn't support it
     my $mo = $params->{$month};
     my $d  = $params->{$day};
-    my $h  = $params->{$hour} || 0;
-    my $mi = $params->{$min} || 0;
-    my $s  = $params->{$sec} || 0;
+    my $h  = $params->{$hour}  || 0;
+    my $mi = $params->{$min}   || 0;
+    my $s  = $params->{$sec}   || 0;
 
-    return [] unless ( $y && $mo && $d && $h && $mi && $s );
-    my $results = [];
+# PS: Commented out. This is silly. Hour, minute, and second
+# can all be validly 0.
+   # return [] unless ( $y && $mo && $d && $h && $mi && $s );
+   return [] unless ( $y && $mo && $d );
+ 
+   my $results = [];
 
     unless ( $y =~ /^\d+$/
         && $mo =~ /^\d+$/

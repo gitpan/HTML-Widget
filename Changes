@@ -1,5 +1,12 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.04 2005-01-30 19:26:00
+        - Fixed $query in tests, fixed fetching multiple-valued params
+        - More documentation!
+        - Lots of small bug fixes
+        - Added add_valid method
+        - Added AllOrNone constraint
+
 1.03 2006-01-17 22:00:00
         - Fixed missing files
 

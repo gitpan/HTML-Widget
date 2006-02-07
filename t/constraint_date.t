@@ -1,4 +1,14 @@
-use Test::More tests => 3;
+use Test::More;
+
+BEGIN {
+  eval { require Date::Calc };
+  if ($@ =~ m{Can.t locate Date/Calc.pm}) {
+    plan skip_all => "The Date constraint requires Date::Calc";
+  } else {
+    plan tests => 3;
+  }
+}
+
 
 use Test::MockObject;
 
