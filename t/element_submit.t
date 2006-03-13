@@ -8,6 +8,7 @@ my $w = HTML::Widget->new;
 
 $w->element( 'Submit', 'foo' )->value('foo');
 $w->element( 'Submit', 'bar' );
+$w->element( 'Submit', 'foobar' )->src('http://localhost/test.jpg');
 
 $w->constraint( 'Integer', 'foo' );
 $w->constraint( 'Integer', 'bar' );
@@ -16,7 +17,7 @@ $w->constraint( 'Integer', 'bar' );
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="submit" id="widget_foo" name="foo" type="submit" value="foo" /><input class="submit" id="widget_bar" name="bar" type="submit" value="1" /></fieldset></form>
+<form action="/" id="widget" method="post"><fieldset><input class="submit" id="widget_foo" name="foo" type="submit" value="foo" /><input class="submit" id="widget_bar" name="bar" type="submit" value="1" /><input class="submit" id="widget_foobar" name="foobar" src="http://localhost/test.jpg" type="image" value="1" /></fieldset></form>
 EOF
 }
 
@@ -47,6 +48,6 @@ EOF
     );
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="submit" id="widget_foo" name="foo" type="submit" value="yada" /><input class="submit" id="widget_bar" name="bar" type="submit" value="23" /></fieldset></form>
+<form action="/" id="widget" method="post"><fieldset><input class="submit" id="widget_foo" name="foo" type="submit" value="yada" /><input class="submit" id="widget_bar" name="bar" type="submit" value="23" /><input class="submit" id="widget_foobar" name="foobar" src="http://localhost/test.jpg" type="image" value="1" /></fieldset></form>
 EOF
 }

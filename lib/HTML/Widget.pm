@@ -22,7 +22,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 =head1 NAME
 
@@ -74,6 +74,16 @@ HTML::Widget - HTML Widget And Validation Framework
 
     # Embed widgets (as fieldset)
     $widget->embed($other_widget);
+
+
+    # Get list of elements
+    my @elements = $widget->get_elements;
+
+    # Get list of constraints
+    my @constraints = $widget->get_constraints;
+
+    # Get list of filters
+    my @filters = $widget->get_filters;
 
 
     # Complete xml result
@@ -328,6 +338,9 @@ Create a single line text field.
 Create a field for uploading files. This will probably be rendered as a
 textfield, with a button for choosing a file.
 
+Adding an Upload element automatically calls
+C<$widget->enctype('multipart/form-data')> for you.
+
 =back
 
 =cut
@@ -337,7 +350,45 @@ sub element {
     my $element =
       $self->_instantiate( "HTML::Widget::Element::$type", { name => $name } );
     push @{ $self->{_elements} }, $element;
+    
+    # forms with file uploads require multipart enctypes
+    $self->enctype('multipart/form-data')
+        if $type eq 'Upload';
+    
     return $element;
+}
+
+=head2 $self->get_elements()
+
+    my @elements = $self->get_elements;
+    
+    my @elements = $self->get_elements( type => 'Textfield' );
+    
+    my @elements = $self->get_elements( name => 'username' );
+
+Returns a list of all elements added to the widget.
+
+If a 'type' argument is given, only returns the elements of that type.
+
+If a 'name' argument is given, only returns the elements with that name.
+
+=cut
+
+sub get_elements {
+    my ( $self, %opt ) = @_;
+    
+    if (exists $opt{type}) {
+        my $type = "HTML::Widget::Element::$opt{type}";
+        
+        return grep { $_->isa($type) } @{ $self->{_elements} };
+    }
+    elsif (exists $opt{name}) {
+        my $name = $opt{name};
+        
+        return grep { $_->name eq $name } @{ $self->{_elements} };
+    }
+    
+    return @{ $self->{_elements} };
 }
 
 =head2 $self->const($tag)
@@ -364,6 +415,13 @@ The type of constraint can be one of:
 
 The fields passed to the "All" constraint are those which are required fields
 in the form.
+
+=item L<HTML::Widget::Constraint::AllOrNone>
+
+    my $c = $widget->constraint( 'AllOrNone', 'foo', 'bar' );
+
+If any of the fields passed to the "AllOrNone" constraint are filled in, then 
+they all must be filled in.
 
 =item L<HTML::Widget::Constraint::ASCII>
 
@@ -402,6 +460,13 @@ L<Date::Calc> module is required.
 
 This constraint ensures that the six fields passed in are a valid date and 
 time. The L<Date::Calc> module is required.
+
+=item L<HTML::Widget::Constraint::DependOn>
+
+    my $c =
+      $widget->constraint( 'DependOn', 'foo', 'bar' );
+
+If the first field listed is filled in, all of the others are required.
 
 =item L<HTML::Widget::Constraint::Email>
 
@@ -497,6 +562,30 @@ sub constraint {
     return $constraint;
 }
 
+=head2 $self->get_constraints()
+
+    my @constraints = $self->get_constraints;
+    
+    my @constraints = $self->get_constraints( type => 'Integer' );
+
+Returns a list of all constraints added to the widget.
+
+If a 'type' argument is given, only returns the constraints of that type.
+
+=cut
+
+sub get_constraints {
+    my ( $self, %opt ) = @_;
+    
+    if (exists $opt{type}) {
+        my $type = "HTML::Widget::Constraint::$opt{type}";
+        
+        return grep { $_->isa($type) } @{ $self->{_constraints} };
+    }
+    
+    return @{ $self->{_constraints} };
+}
+
 =head2 $self->embed(@widgets)
 
 Insert the contents of another widget object into this one. Each embedded
@@ -532,6 +621,9 @@ generated.
 
 Set/Get the encoding type of the form. This can be either "application/x-www-form-urlencoded" which is the default, or "multipart/form-data".
 See L<http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4>.
+
+If the widget contains an Upload element, the enctype is automatically set to
+'multipart/form-data'.
 
 =head2 $self->filter( $type, @names )
 
@@ -571,6 +663,30 @@ sub filter {
     $filter->init($self);
     push @{ $self->{_filters} }, $filter;
     return $filter;
+}
+
+=head2 $self->get_filters()
+
+    my @filters = $self->get_filters;
+    
+    my @filters = $self->get_filters( type => 'Integer' );
+
+Returns a list of all filters added to the widget.
+
+If a 'type' argument is given, only returns the filters of that type.
+
+=cut
+
+sub get_filters {
+    my ( $self, %opt ) = @_;
+    
+    if (exists $opt{type}) {
+        my $type = "HTML::Widget::Filter::$opt{type}";
+        
+        return grep { $_->isa($type) } @{ $self->{_filters} };
+    }
+    
+    return @{ $self->{_filters} };
 }
 
 =head2 $self->id($id)

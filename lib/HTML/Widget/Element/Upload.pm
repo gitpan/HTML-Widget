@@ -24,6 +24,9 @@ HTML::Widget::Element::Upload - Upload Element
 
 Upload Element.
 
+Adding an Upload element automatically calls
+C<$widget->enctype('multipart/form-data')> for you.
+
 =head1 METHODS
 
 =head2 $self->render( $widget, $value, $errors )

@@ -99,13 +99,14 @@ sub mk_input {
     my $id   = $self->attributes->{id} || $self->id($w);
     my $type = ref $self;
     $type =~ s/^HTML::Widget::Element:://;
+    $type =~ s/::/_/g;
     $self->attributes->{class} ||= lc($type);
     $e->attr( id => $id ) unless $self->attributes->{id};
     $e->attr( name => $self->name );
 
     for my $key ( keys %$attrs ) {
         my $value = $attrs->{$key};
-        $e->attr( $key, $value ) if $value;
+        $e->attr( $key, $value ) if defined $value;
     }
     $e->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );

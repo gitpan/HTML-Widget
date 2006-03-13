@@ -78,7 +78,7 @@ sub render {
     }
 
     my $checked =
-      $value ? ( defined $value && $value eq $self->value ) ? 'checked' : 0 : 0;
+      $value ? ( defined $value && $value eq $self->value ) ? 'checked' : undef : undef;
     $checked = 'checked' if ( !defined $value && $self->checked );
     $value   = $self->value;
 

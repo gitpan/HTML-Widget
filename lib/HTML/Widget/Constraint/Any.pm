@@ -14,7 +14,7 @@ HTML::Widget::Constraint::Any - Any Constraint
 
 =head1 DESCRIPTION
 
-Any Constraint.
+One or more of the named fields must be present.
 
 =head1 METHODS
 

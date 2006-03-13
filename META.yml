@@ -20,4 +20,4 @@ requires:
   HTML::Scrubber: 0
   Storable: 0
   perl: 5.8.1
-version: 1.04
+version: 1.05

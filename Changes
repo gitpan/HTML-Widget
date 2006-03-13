@@ -1,5 +1,14 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.05
+        - New methods get_constraints(), get_elements(), get_filters
+	- add value alias for checkbox
+        - Fixed element values set to zero or the empty string not being
+          set in the xml output
+        - Added DependOn constraint
+	- Fix textarea with description.
+	- Add a src option to Submit to make it a image submit.
+
 1.04 2005-01-30 19:26:00
         - Fixed $query in tests, fixed fetching multiple-valued params
         - More documentation!

@@ -17,7 +17,7 @@ $w->constraint( 'Integer', 'bar' );
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input accept="text/plain" class="upload" id="widget_foo" maxlength="1000" name="foo" size="30" type="file" /></label><input class="upload" id="widget_bar" name="bar" type="file" /></fieldset></form>
+<form action="/" enctype="multipart/form-data" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input accept="text/plain" class="upload" id="widget_foo" maxlength="1000" name="foo" size="30" type="file" /></label><input class="upload" id="widget_bar" name="bar" type="file" /></fieldset></form>
 EOF
 }
 
@@ -49,6 +49,6 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<span class="fields_with_errors"><input accept="text/plain" class="upload" id="widget_foo" maxlength="1000" name="foo" size="30" type="file" value="yada" /></span></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><input class="upload" id="widget_bar" name="bar" type="file" value="23" /></fieldset></form>
+<form action="/" enctype="multipart/form-data" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<span class="fields_with_errors"><input accept="text/plain" class="upload" id="widget_foo" maxlength="1000" name="foo" size="30" type="file" value="yada" /></span></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><input class="upload" id="widget_bar" name="bar" type="file" value="23" /></fieldset></form>
 EOF
 }

@@ -24,6 +24,7 @@ HTML Escaping Filter.
 
 sub filter {
     my ( $self, $value ) = @_;
+    return undef unless defined $value;
     $value =~ s/&(?!(amp|lt|gt|quot);)/&amp;/g;
     $value =~ s/</&lt;/g;
     $value =~ s/>/&gt;/g;

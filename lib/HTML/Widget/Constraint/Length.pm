@@ -37,6 +37,7 @@ sub validate {
     my ( $self, $value ) = @_;
 
     # Return valid on an empty value
+    return 1 unless defined($value);
     return 1 if ($value eq '');
 
     my $minimum = $self->minimum;

@@ -1,6 +1,0 @@
-- Added doc for RadioGroup - add class?
-- Added Reset element
-- Added "maxlength" to Textfield - does it actually use the attribs in
-render()?
-- Whats fill() in password?
-- checks on conflicting names on merge/embed?

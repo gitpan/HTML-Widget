@@ -63,12 +63,6 @@ sub render {
 
     my $e = $self->mk_error( $w, $errors );
 
-    if ($errors) {
-        my $err = HTML::Element->new( 'span', class => 'fields_with_errors' );
-        $err->push_content($i);
-        $i = $err;
-    }
-
     return $self->container( { element => $l, error => $e } );
 }
 

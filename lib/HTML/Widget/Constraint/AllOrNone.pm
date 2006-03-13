@@ -6,7 +6,7 @@ use base 'HTML::Widget::Constraint';
 
 =head1 NAME
 
-HTML::Widget::Constraint::All - All Constraint
+HTML::Widget::Constraint::AllOrNone - AllOrNone Constraint
 
 =head1 SYNOPSIS
 

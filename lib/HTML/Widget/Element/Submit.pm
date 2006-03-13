@@ -5,7 +5,7 @@ use strict;
 use base 'HTML::Widget::Element';
 use NEXT;
 
-__PACKAGE__->mk_accessors(qw/value/);
+__PACKAGE__->mk_accessors(qw/value src/);
 
 =head1 NAME
 
@@ -40,10 +40,23 @@ sub render {
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
     $value ||= $self->value;
-    my $i = $self->mk_input( $w, { type => 'submit', value => $value } );
+    my $i;
+    if ($self->src) {
+	 $i = $self->mk_input( $w, { type => 'image', src=>$self->src, value => $value } );
+    } else {
+	 $i = $self->mk_input( $w, { type => 'submit', value => $value } );
+    }
 
     return $self->container( { element => $i } );
 }
+
+=head2 value
+
+The value of this submit element.
+
+=head2 src
+
+If set, the element will be an image submit, using this url as image.
 
 =head1 AUTHOR
 

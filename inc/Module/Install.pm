@@ -1,4 +1,4 @@
-#line 1 "/usr/src/perl/catalyst/trunk/HTML-Widget/inc/Module/Install.pm - /usr/lib/perl5/site_perl/5.8.4/Module/Install.pm"
+#line 1 "/usr/src/perl/catalyst/trunk/HTML-Widget/inc/Module/Install.pm - /usr/lib/perl5/site_perl/5.8.7/Module/Install.pm"
 package Module::Install;
 
 use 5.004;
