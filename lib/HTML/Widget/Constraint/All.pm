@@ -29,7 +29,7 @@ sub process {
         push @$results,
           HTML::Widget::Error->new(
             { name => $name, message => $self->mk_message } )
-          if $self->not ? $params->{$name} : !$params->{$name};
+          if $self->not ? defined($params->{$name}) : !defined($params->{$name});
     }
     return $results;
 }

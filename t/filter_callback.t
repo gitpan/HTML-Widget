@@ -1,8 +1,9 @@
 use Test::More tests => 4;
 
-use Test::MockObject;
-
 use_ok("HTML::Widget");
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
@@ -20,10 +21,10 @@ $w->filter( 'Callback', 'foo' )->callback(sub {
 
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data = { foo => 'foobar', bar => 'foofoo' };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    my $query = HTMLWidget::TestLib->mock_query({
+        foo => 'foobar', bar => 'foofoo',
+    });
+
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="barbar" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="foofoo" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
@@ -45,10 +46,10 @@ $w2->filter('Callback')->callback( sub {
 
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data = { foo => 'foobar', bar => 'buzfoo' };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    my $query = HTMLWidget::TestLib->mock_query({
+        foo => 'foobar', bar => 'buzfoo',
+    });
+
     my $f = $w2->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="1" /></label><input class="textfield" id="widget_bar" name="bar" type="text" value="1" /></fieldset></form>
@@ -71,13 +72,11 @@ $w3->filter('Callback')->callback(sub{
 
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data  = {
+    my $query = HTMLWidget::TestLib->mock_query({
         foo => [ 'foobar', 'foobuz' ],
         bar => [ 'barfoo', 'barbuz' ]
-    };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    });
+
     my $f = $w3->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="barbar" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="barbar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>

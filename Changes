@@ -1,13 +1,33 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
-1.05
+1.06 2006-04-06 10:44
+        - Added Module::Pluggable::Fast preloading for PAR packaging
+          and the like
+        - Make HTML::Widget::Container->element support arrayrefs
+        - New method add_error() in HTML::Widget::Result
+        - Select elements automatically get an In constraint added,
+          corresponding to the element's option keys
+        - RadioGroup elements automatically get an In constraint added,
+          corresponding to the element's values
+        - New Number constraint
+        - New 'multiple' attribute supported on Select elements
+        - Multiple input values for a Select element is an error if the
+        	multiple attribute is not true
+        - Bug fixes:
+        - Hidden element now accepts false but defined input values
+        - Fixed bug with $result->params() not returning correct results
+          when a field had multiple values
+        - Regex constraint skipped when input param not defined
+          (stops 'uninitialized value' warning)
+
+1.05 2006-03-13 10:52   
         - New methods get_constraints(), get_elements(), get_filters
-	- add value alias for checkbox
+        - add value alias for checkbox
         - Fixed element values set to zero or the empty string not being
           set in the xml output
         - Added DependOn constraint
-	- Fix textarea with description.
-	- Add a src option to Submit to make it a image submit.
+        - Fix textarea with description.
+        - Add a src option to Submit to make it a image submit.
 
 1.04 2005-01-30 19:26:00
         - Fixed $query in tests, fixed fetching multiple-valued params

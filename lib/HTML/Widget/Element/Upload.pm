@@ -29,6 +29,19 @@ C<$widget->enctype('multipart/form-data')> for you.
 
 =head1 METHODS
 
+=head2 $self->prepare( $widget, $value )
+
+=cut
+
+sub prepare {
+    my ( $self, $w ) = @_;
+    
+    # force multipart
+    $w->enctype('multipart/form-data');
+    
+    return;
+}
+
 =head2 $self->render( $widget, $value, $errors )
 
 =cut

@@ -1,8 +1,9 @@
 use Test::More tests => 33;
 
-use Test::MockObject;
-
 use_ok('HTML::Widget');
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new->method('post')->action('/foo/bar');
 
@@ -28,10 +29,7 @@ EOF
 
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data = { age => 23, name => 'sri' };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    my $query = HTMLWidget::TestLib->mock_query({ age => 23, name => 'sri' });
 
     my $f = $w->process($query);
     isa_ok( $f, 'HTML::Widget::Result',

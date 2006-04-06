@@ -30,6 +30,10 @@ sub new {
     shift->NEXT::new(@_)->value(1);
 }
 
+=head2 value
+
+Default value is 1.
+
 =head2 $self->render( $widget, $value )
 
 =cut
@@ -39,7 +43,8 @@ sub render {
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
-    $value ||= $self->value;
+    $value = $self->value if not defined $value;
+    
     my $i = $self->mk_input( $w, { type => 'hidden', value => $value } );
 
     return $self->container( { element => $i } );

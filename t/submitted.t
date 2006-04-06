@@ -1,8 +1,9 @@
 use Test::More tests => 3;
 
-use Test::MockObject;
-
 use_ok('HTML::Widget');
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
@@ -20,10 +21,11 @@ print "Submitted: ", $f->submitted, "\n";
 }
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data = { foo => 'foo', bar => [ 'yada', 23 ] };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    my $query = HTMLWidget::TestLib->mock_query({
+        foo => 'foo',
+        bar => [ 'yada', 23 ],
+    });
+
     my $f = $w->process($query);
     is($f->submitted, 1, 'Form was submitted');
 }

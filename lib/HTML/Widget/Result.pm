@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Accessor';
 use HTML::Widget::Container;
+use HTML::Widget::Error;
 use HTML::Element;
 use Storable 'dclone';
 
@@ -113,7 +114,7 @@ sub as_xml {
         for my $element ( @{ $self->{_elements} } ) {
             my $value = undef;
             my $name  = $element->{name};
-            $value = $params->{$name} if ( $name && $params );
+            $value = $params->{$name} if ( defined($name) && $params );
             my $container =
               $element->render( $self, $value, $self->{_errors}->{$name} );
             $params->{$name} = $value;
@@ -187,11 +188,11 @@ sub elements {
     for my $element ( @{ $self->{_elements} } ) {
         my $value = undef;
         my $ename = $element->{name};
-        next if ( ($name) && ( $ename ne $name ) );
+        next if ( defined($name) && ( $ename ne $name ) );
         $value = $params->{$ename} if ( $ename && $params );
         my $container =
           $element->render( $self, $value, $self->{_errors}->{$ename} );
-        $params->{$name} = $value;
+        $params->{$ename} = $value;
         $container->{javascript} ||= '';
         $container->{javascript} .= $javascript{$ename} if $javascript{$ename};
         return $container if $name;
@@ -283,7 +284,12 @@ sub params {
     my @names = $self->valid;
     my %params;
     for my $name (@names) {
-        $params{$name} = $self->param($name);
+        my @values = $self->param($name);
+        if (@values > 1) {
+            $params{$name} = \@values;
+        } else {
+            $params{$name} = $values[0];
+        }
     }
     return \%params;
 }
@@ -341,6 +347,54 @@ sub add_valid {
     my  ($self, $key, $value ) = @_;
     $self->{_params}->{$key}=$value;
     return $value;
+}
+
+=head2 add_error
+
+    $result->add_error({ name => 'foo' });
+
+This allows you to add custom error messages after the widget has processed
+the input params.
+
+Accepts 'name', 'type' and 'message' arguments.
+The 'name' argument is required. The default value for 'type' is 'Custom'.
+The default value for 'message' is 'Invalid Input'.
+
+An example of use.
+
+    if ( ! $result->has_errors ) {
+        my $user = $result->valid('username');
+        my $pass = $result->valid('password');
+        
+        if ( ! $app->login( $user, $pass ) ) {
+            $result->add_error({
+                name => 'password',
+                message => 'Incorrect Password',
+            });
+        }
+    }
+
+In this example, the C<$result> initially contains no errors. If the login()
+is unsuccessful though, add_error() is used to add an error to the password
+Element. If the user is shown the form again using C<$result->as_xml()>,
+they will be shown an appropriate error message alongside the password
+field.
+
+=cut 
+
+sub add_error {
+    my ( $self, $args ) = @_;
+    
+    die "name argument required" unless defined $args->{name};
+    
+    $args->{type} = 'Custom' if not exists $args->{type};
+    $args->{message} = 'Invalid Input' if not exists $args->{message};
+    
+    my $error = HTML::Widget::Error->new( $args );
+    
+    push @{ $self->{_errors}->{$args->{name}} }, $error;
+    
+    return $error;
 }
 
 =head1 AUTHOR

@@ -1,8 +1,9 @@
 use Test::More tests => 2;
 
-use Test::MockObject;
-
 use_ok('HTML::Widget');
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new->tag('span')->subtag('span');
 

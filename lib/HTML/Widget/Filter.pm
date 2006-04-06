@@ -49,7 +49,7 @@ Called whenever process() gets called.
 
 sub prepare { }
 
-=head2 $self->process($params)
+=head2 $self->process($params, $uploads)
 
 =cut
 

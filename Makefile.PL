@@ -9,11 +9,14 @@ requires 'Class::Accessor::Fast';
 requires 'Class::Accessor::Chained::Fast';
 requires 'HTML::Scrubber';
 requires 'Storable';
+requires 'Module::Pluggable::Fast';
+requires 'Email::Valid';
+requires 'Date::Calc';
+requires 'Scalar::Util';
 
-build_requires 'Test::MockObject';
+build_requires 'Test::NoWarnings';
 
-recommends 'Email::Valid';
-recommends 'Date::Calc';
+no_index directory => 't/lib';
 
 auto_install;
 &WriteAll;

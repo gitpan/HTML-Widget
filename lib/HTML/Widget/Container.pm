@@ -63,7 +63,11 @@ sub as_list {
     my $self = shift;
     my @list;
     push @list, $self->javascript_element if $self->javascript;
-    push @list, $self->element            if $self->element;
+    if (ref $self->element eq 'ARRAY') {
+	push @list, @{$self->element};
+    } else {
+	push @list, $self->element            if $self->element;
+    }
     push @list, $self->error              if $self->error;
     return @list;
 }
@@ -80,7 +84,9 @@ Returns xml for element.
 
 sub element_xml {
     my $self = shift;
-    return $self->element ? $self->element->as_XML : '';
+    return ref $self->element eq 'ARRAY' ? 
+	  join "", map { $_->as_XML } @{$self->element}  
+	: $self->element ? $self->element->as_XML : '';
 }
 
 =head2 $self->error($error)

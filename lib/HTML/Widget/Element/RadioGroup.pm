@@ -24,6 +24,10 @@ HTML::Widget::Element::RadioGroup - Radio Element grouping
 
 RadioGroup Element.
 
+An implicit L<In Constraint|HTML::Widget::Constraint::In> is
+automatically added to every RadioGroup to ensure that only values
+in C<$e->values> are considered valid.
+
 =head1 METHODS
 
 =head2 comment
@@ -48,8 +52,6 @@ option tag, and its corresponding value is the text displayed in the element.
 
 A list of keys (unique option ids) which will be pre-set to "selected".
 
-=head2 $self->render( $widget, $value, $errors )
-
 =cut
 
 sub new {
@@ -63,6 +65,35 @@ sub new {
 
     $self;
 }
+
+=head2 $self->prepare( $widget, $value )
+
+=cut
+
+sub prepare {
+    my ( $self, $w, $value ) = @_;
+    
+    my $name = $self->name;
+    
+    # return if there's already an All constraint for this element
+    for my $c ( $w->get_constraints(type => 'All') ) {
+        if ($c->names && $c->names->[0] eq $name) {
+            return;
+        }
+    }
+    
+    my %seen;
+    my @uniq = grep { $seen{$_}++ == 0 ? $_ : 0 } @{ $self->values };
+    
+    $w->constraint( 'In', $name )->in( @uniq )
+        if @uniq;
+    
+    return;
+}
+
+=head2 $self->render( $widget, $value, $errors )
+
+=cut
 
 sub render {
     my ( $self, $w, $value, $errors ) = @_;

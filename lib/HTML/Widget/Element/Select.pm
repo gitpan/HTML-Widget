@@ -3,10 +3,11 @@ package HTML::Widget::Element::Select;
 use warnings;
 use strict;
 use base 'HTML::Widget::Element';
+use HTML::Widget::Error;
 
 *value = \&selected;
 
-__PACKAGE__->mk_accessors(qw/comment label options selected/);
+__PACKAGE__->mk_accessors(qw/comment label multiple options selected/);
 __PACKAGE__->mk_attr_accessors(qw/size/);
 
 =head1 NAME
@@ -26,6 +27,10 @@ HTML::Widget::Element::Select - Select Element
 
 Select Element.
 
+An implicit L<In Constraint|HTML::Widget::Constraint::In> is
+automatically added to every Select element to ensure that only key values
+from the L</options> list are considered valid.
+
 =head1 METHODS
 
 =head2 comment
@@ -38,8 +43,19 @@ This label will be placed next to your Element.
 
 =head2 size
 
-The size of a select element determines whether it will be displayed as a 
-dropdown (size = 1), or a multi-select list element. The default is 1.
+If set to 1, the select element is displayed as a pop-up menu, otherwise the
+element is displayed as a list box, with the size determining the display 
+height in rows. The default size is 1.
+
+=head2 multiple
+
+    $widget->element( 'Select', 'foo' )->multiple( 1 );
+
+If the multiple attribute is set, the select element is rendered as a list
+box, and the user may select multiple options.
+
+If the size is not set, the default size (height) is the number of elements.
+If the size is set to 1, the element is rendered as a pop-up menu.
 
 =head2 options
 
@@ -52,6 +68,53 @@ option tag, and its corresponding value is the text displayed in the element.
 
 A list of keys (unique option ids) which will be pre-set to "selected".
 Can also be addressed as value for consistency with the other elements
+
+=head2 $self->prepare( $widget, $value )
+
+=cut
+
+sub prepare {
+    my ( $self, $w, $value ) = @_;
+    
+    my $name = $self->name;
+    
+    # return if there's already an All constraint for this element
+    for my $c ( $w->get_constraints(type => 'All') ) {
+        if ($c->names && $c->names->[0] eq $name) {
+            return;
+        }
+    }
+    
+    my %options = @{ $self->options };
+    my %seen;
+    my @uniq = grep { $seen{$_}++ == 0 ? $_ : 0 } keys %options;
+    
+    $w->constraint( 'In', $name )->in( @uniq )
+        if @uniq;
+    
+    return;
+}
+
+=head2 $self->process( $params, $uploads )
+
+=cut
+
+sub process {
+    my ( $self, $params, $uploads ) = @_;
+    
+    my $errors;
+    my $name = $self->name;
+    
+    # only allow multiple values is multiple() is true
+    if ( ! $self->multiple() && ref $params->{$name} eq 'ARRAY' ) {
+        push @$errors, HTML::Widget::Error->new({
+            name    => $name,
+            type    => 'Multiple',
+            message => 'Multiple Selections Not Allowed',
+        });
+    }
+    return $errors;
+}
 
 =head2 $self->render( $widget, $value, $errors )
 
@@ -107,6 +170,9 @@ sub render {
     my $id = $self->id($w);
     $selectelm->attr( id   => $id );
     $selectelm->attr( name => $self->name );
+
+    $selectelm->attr( multiple => 'multiple' )
+        if $self->multiple;
 
     $selectelm->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );

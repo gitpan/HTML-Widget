@@ -22,7 +22,7 @@ Integer Constraint.
 
 =cut
 
-sub regex { qr/^\d*$/ }
+sub regex { qr/^[0-9]*$/ }
 
 =head1 AUTHOR
 

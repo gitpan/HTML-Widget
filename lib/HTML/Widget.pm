@@ -7,6 +7,14 @@ use HTML::Widget::Result;
 use Scalar::Util 'blessed';
 use Carp qw/croak/;
 
+# For PAR
+use Module::Pluggable::Fast
+  search =>
+  [qw/HTML::Widget::Element HTML::Widget::Constraint HTML::Widget::Filter/],
+  require => 1;
+
+__PACKAGE__->plugins;
+
 __PACKAGE__->mk_accessors(
     qw/container indicator legend query subcontainer uploads strict empty_errors/
 );
@@ -22,7 +30,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 =head1 NAME
 
@@ -349,12 +357,9 @@ sub element {
     my ( $self, $type, $name ) = @_;
     my $element =
       $self->_instantiate( "HTML::Widget::Element::$type", { name => $name } );
+
     push @{ $self->{_elements} }, $element;
-    
-    # forms with file uploads require multipart enctypes
-    $self->enctype('multipart/form-data')
-        if $type eq 'Upload';
-    
+
     return $element;
 }
 
@@ -376,18 +381,18 @@ If a 'name' argument is given, only returns the elements with that name.
 
 sub get_elements {
     my ( $self, %opt ) = @_;
-    
-    if (exists $opt{type}) {
+
+    if ( exists $opt{type} ) {
         my $type = "HTML::Widget::Element::$opt{type}";
-        
+
         return grep { $_->isa($type) } @{ $self->{_elements} };
     }
-    elsif (exists $opt{name}) {
+    elsif ( exists $opt{name} ) {
         my $name = $opt{name};
-        
+
         return grep { $_->name eq $name } @{ $self->{_elements} };
     }
-    
+
     return @{ $self->{_elements} };
 }
 
@@ -489,6 +494,13 @@ be empty.
 This constraint checks that the field(s) passed in are valid URLs. The regex
 used to test this can be set manually using the ->regex method.
 
+=item L<HTML::Widget::Constraint::In>
+
+    my $c = $widget->constraint( 'In', 'foo' );
+    $c->in( 'possible', 'values' );
+
+Check that a value is one of a specified set.
+
 =item L<HTML::Widget::Constraint::Integer>
 
     my $c = $widget->constraint( 'Integer', 'foo' );
@@ -576,13 +588,13 @@ If a 'type' argument is given, only returns the constraints of that type.
 
 sub get_constraints {
     my ( $self, %opt ) = @_;
-    
-    if (exists $opt{type}) {
+
+    if ( exists $opt{type} ) {
         my $type = "HTML::Widget::Constraint::$opt{type}";
-        
+
         return grep { $_->isa($type) } @{ $self->{_constraints} };
     }
-    
+
     return @{ $self->{_constraints} };
 }
 
@@ -679,13 +691,13 @@ If a 'type' argument is given, only returns the filters of that type.
 
 sub get_filters {
     my ( $self, %opt ) = @_;
-    
-    if (exists $opt{type}) {
+
+    if ( exists $opt{type} ) {
         my $type = "HTML::Widget::Filter::$opt{type}";
-        
+
         return grep { $_->isa($type) } @{ $self->{_filters} };
     }
-    
+
     return @{ $self->{_filters} };
 }
 
@@ -794,6 +806,17 @@ sub process {
             my @values = $query->param($param);
             $params{$param} = @values > 1 ? \@values : $values[0];
         }
+        for my $element ( @{ $self->{_elements} } ) {
+            my $results = $element->process( \%params, $uploads );
+            for my $result ( @{$results} ) {
+                my $name  = $result->name;
+                my $class = ref $element;
+                $class =~ s/^HTML::Widget::Element:://;
+                $class =~ s/::/_/g;
+                $result->type($class) if not defined $result->type;
+                push @{ $errors->{$name} }, $result;
+            }
+        }
         for my $filter ( @{ $self->{_filters} } ) {
             $filter->process( \%params, $uploads );
         }
@@ -824,7 +847,7 @@ sub process {
             subcontainer  => $self->subcontainer,
             strict        => $self->strict,
             empty_errors  => $self->empty_errors,
-            submitted     => ($query ? 1 : 0),
+            submitted     => ( $query ? 1 : 0 ),
         }
     );
 }

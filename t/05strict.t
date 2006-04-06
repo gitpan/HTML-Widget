@@ -1,8 +1,9 @@
 use Test::More tests => 12;
 
-use Test::MockObject;
-
 use_ok('HTML::Widget');
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new->method('post')->action('/foo/bar')->strict(1);
 
@@ -13,11 +14,9 @@ $w->element( 'Submit',    'ok' )->value('OK');
 $w->constraint( 'Integer', 'age' )->message('No integer.');
 $w->constraint( 'Maybe',   'ok' );
 
-my $query = Test::MockObject->new;
-my $data  =
-  { age => 'NaN', name => 'sri', foo => 'blah', bar => 'stuff', ok => 'OK' };
-$query->mock( 'param',
-    sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+my $query = HTMLWidget::TestLib->mock_query({
+    age => 'NaN', name => 'sri', foo => 'blah', bar => 'stuff', ok => 'OK',
+    });
 
 my $f = $w->process($query);
 

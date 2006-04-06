@@ -1,8 +1,9 @@
 use Test::More tests => 4;
 
-use Test::MockObject;
-
 use_ok('HTML::Widget');
+
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
@@ -24,29 +25,10 @@ EOF
 
 # With mocked basic query
 {
-    my $query = Test::MockObject->new;
-    my $data = { foo => 'yada', bar => '23' };
-    $query->mock( 'param',
-       sub {
-           my ( $self, $param ) = @_;
-           if ( @_ == 1 ) { return keys %$data }
-           else {
-               unless ( exists $data->{$param} ) {
-                   return wantarray ? () : undef;
-               }
-               if ( ref $data->{$param} eq 'ARRAY' ) {
-                   return (wantarray)
-                     ? @{ $data->{$param} }
-                     : $data->{$param}->[0];
-               }
-               else {
-                   return (wantarray)
-                     ? ( $data->{$param} )
-                     : $data->{$param};
-               }
-           }
-       } 
-    );
+    my $query = HTMLWidget::TestLib->mock_query({
+        foo => 'yada', bar => '23',
+    });
+
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label"><span class="fields_with_errors"><input class="radio" id="widget_foo" name="foo" type="radio" value="foo" /></span>Foo</label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><label for="widget_bar_1" id="widget_bar_1_label"><input checked="checked" class="radio" id="widget_bar_1" name="bar" type="radio" value="23" />Bar</label><label for="widget_bar_2" id="widget_bar_2_label"><input class="radio" id="widget_bar_2" name="bar" type="radio" value="1" />Bar2</label><label for="widget_bar_3" id="widget_bar_3_label"><input class="radio" id="widget_bar_3" name="bar" type="radio" value="1" />Bar3</label></fieldset></form>
@@ -64,12 +46,14 @@ EOF
 
     $w1->constraint( 'Integer', 'foo' );
     $w1->constraint( 'Integer', 'bar' );
-    my $query = Test::MockObject->new;
-    my $data = { foo => 'yada', bar => '23' };
-    $query->mock( 'param',
-        sub { $_[1] ? ( return $data->{ $_[1] } ) : ( keys %$data ) } );
+    
+    my $query = HTMLWidget::TestLib->mock_query({
+        foo => 'yada', bar => '23',
+    });
+
     my $w2 = HTML::Widget->new('something');
     $w2->embed($w1);
+    
     my $f = $w2->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form action="/" id="something" method="post"><fieldset id="something_widget"><label class="labels_with_errors" for="something_widget_foo" id="something_widget_foo_label"><span class="fields_with_errors"><input class="radio" id="something_widget_foo" name="foo" type="radio" value="foo" /></span>Foo</label><span class="error_messages" id="something_widget_foo_errors"><span class="integer_errors" id="something_widget_foo_error_integer">Invalid Input</span></span><label for="something_widget_bar_1" id="something_widget_bar_1_label"><input checked="checked" class="radio" id="something_widget_bar_1" name="bar" type="radio" value="23" />Bar</label><label for="something_widget_bar_2" id="something_widget_bar_2_label"><input class="radio" id="something_widget_bar_2" name="bar" type="radio" value="1" />Bar2</label><label for="something_widget_bar_3" id="something_widget_bar_3_label"><input class="radio" id="something_widget_bar_3" name="bar" type="radio" value="1" />Bar3</label></fieldset></form>

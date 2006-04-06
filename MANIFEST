@@ -30,6 +30,7 @@ lib/HTML/Widget/Constraint/In.pm
 lib/HTML/Widget/Constraint/Integer.pm
 lib/HTML/Widget/Constraint/Length.pm
 lib/HTML/Widget/Constraint/Maybe.pm
+lib/HTML/Widget/Constraint/Number.pm
 lib/HTML/Widget/Constraint/Printable.pm
 lib/HTML/Widget/Constraint/Range.pm
 lib/HTML/Widget/Constraint/Regex.pm
@@ -68,8 +69,11 @@ t/02pod.t
 t/03podcoverage.t
 t/04basic.t
 t/05strict.t
+t/06bugs_result_elements_warnings.t
+t/06bugs_result_params_multiple.t
 t/06bugs_value_empty_string.t
 t/06bugs_value_zero.t
+t/06bugs_zero_xml.t
 t/constraint_all.t
 t/constraint_allornone.t
 t/constraint_any.t
@@ -84,6 +88,7 @@ t/constraint_http.t
 t/constraint_in.t
 t/constraint_integer.t
 t/constraint_length.t
+t/constraint_number.t
 t/constraint_printable.t
 t/constraint_range.t
 t/constraint_regex.t
@@ -94,7 +99,9 @@ t/element_hidden.t
 t/element_password.t
 t/element_radio.t
 t/element_radiogroup.t
+t/element_radiogroup_implicit_in_constraint.t
 t/element_select.t
+t/element_select_implicit_in_constraint.t
 t/element_span.t
 t/element_submit.t
 t/element_textarea.t
@@ -110,4 +117,6 @@ t/filter_whitespace.t
 t/get_constraints.t
 t/get_elements.t
 t/get_filters.t
+t/lib/HTMLWidget/TestLib.pm
+t/result_add_error.t
 t/submitted.t

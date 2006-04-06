@@ -156,11 +156,21 @@ Defines if element gets automatically rendered.
 
 =head2 $self->prepare($widget)
 
-Called whenever process() gets called.
+Called whenever $widget->process() gets called, before $element->process().
 
 =cut
 
 sub prepare { }
+
+=head2 $self->process($params, $uploads)
+
+Called whenever $widget->process()
+
+Returns an arrayref of L<HTML::Widget::Error> objects.
+
+=cut
+
+sub process { }
 
 =head2 $self->render
 

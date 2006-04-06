@@ -80,7 +80,7 @@ Called every time process() gets called.
 
 sub prepare { }
 
-=head2 $self->process( $widget, $params )
+=head2 $self->process( $widget, $params, $uploads )
 
 Validates params and returns a arrayref containing L<HTML::Widget::Error>
 objects representing failed constraints.

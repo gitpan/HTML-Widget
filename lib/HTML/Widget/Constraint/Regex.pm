@@ -30,7 +30,7 @@ Regex Constraint.
 sub validate {
     my ( $self, $value ) = @_;
     my $regex = $self->regex || qr/.*/;
-    return 0 if ( $value !~ $regex );
+    return 0 if ( defined $value && $value !~ $regex );
     return 1;
 }
 
