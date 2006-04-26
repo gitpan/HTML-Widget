@@ -2,10 +2,13 @@ package HTML::Widget::Element;
 
 use warnings;
 use strict;
-use base 'HTML::Widget::Accessor';
+use base qw/HTML::Widget::Accessor Class::Data::Accessor/;
 use HTML::Element;
 use HTML::Widget::Container;
 use NEXT;
+
+
+__PACKAGE__->mk_classaccessor(container_class => 'HTML::Widget::Container');
 
 __PACKAGE__->mk_accessors(qw/name passive/);
 __PACKAGE__->mk_attr_accessors(qw/class/);
@@ -35,13 +38,24 @@ sub new { shift->NEXT::new(@_)->attributes( {} ) }
 
 =head2 $self->container($attributes)
 
-Creates a new L<HTML::Widget::Container>.
+Creates a new $container_class. Defaults to L<HTML::Widget::Container>.
 
 =cut
 
 sub container {
     my ( $self, $attributes ) = @_;
-    return HTML::Widget::Container->new($attributes);
+	my $class = $self->container_class || 'HTML::Widget::Container';
+    return $class->new($attributes);
+}
+
+sub container_class {
+	my ($self) = shift;
+
+	if (not $_[0] and @_ >= 1) {
+		delete $self->{container_class};
+	}
+
+	return $self->_container_class_accessor(@_);
 }
 
 =head2 $self->id($widget)
@@ -95,7 +109,19 @@ Creates a new input tag.
 
 sub mk_input {
     my ( $self, $w, $attrs, $errors ) = @_;
-    my $e    = HTML::Element->new('input');
+    
+    return $self->mk_tag( $w, 'input', $attrs, $errors );
+}
+
+=head2 $self->mk_tag( $w, $tagtype, $attrs, $errors )
+
+Creates a new tag.
+
+=cut
+
+sub mk_tag {
+    my ( $self, $w, $tag, $attrs, $errors ) = @_;
+    my $e    = HTML::Element->new( $tag );
     my $id   = $self->attributes->{id} || $self->id($w);
     my $type = ref $self;
     $type =~ s/^HTML::Widget::Element:://;
@@ -110,11 +136,7 @@ sub mk_input {
     }
     $e->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );
-    if ($errors) {
-        my $err = HTML::Element->new( 'span', class => 'fields_with_errors' );
-        $err->push_content($e);
-        return $err;
-    }
+
     return $e;
 }
 
@@ -172,13 +194,26 @@ Returns an arrayref of L<HTML::Widget::Error> objects.
 
 sub process { }
 
-=head2 $self->render
+=head2 $self->containerize
 
-Render element.
+Containerize the element, label and error for later rendering. Uses HTML::Widget::Container by default, but this can be over-ridden on a class or instance basis via L<container_class>.
 
 =cut
 
-sub render { }
+sub containerize { }
+
+=head2 $self->container_class($class)
+
+Contains the class to use for contain the element which then get rendered. Defaults to L<HTML::Widget::Container>. C<container_class> can be set at a class or instance level:
+
+  HTML::Widget::Element->container_class('My::Container'); 
+  # Override default to custom class
+  
+  HTML::Widget::Element::Password->container_class(undef); 
+  # Passwords use the default class
+   
+  $w->element('Textfield')->name('foo')->container_class->('My::Other::Container'); 
+  # This element only will use My::Other::Container to render
 
 =head1 AUTHOR
 

@@ -33,11 +33,11 @@ sub new {
     shift->NEXT::new(@_)->value(1);
 }
 
-=head2 $self->render( $widget, $value, $errors )
+=head2 $self->containerize( $widget, $value, $errors )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value, $errors ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
@@ -50,10 +50,9 @@ sub render {
     my $i =
       $self->mk_input( $w,
         { checked => $checked, type => 'checkbox', value => $value }, $errors );
-    $l ? ( $l->unshift_content($i) ) : ( $l = $i );
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $l, error => $e } );
+    return $self->container( { element => $i, error => $e, label => $l } );
 }
 
 =head1 AUTHOR

@@ -16,7 +16,7 @@ use Module::Pluggable::Fast
 __PACKAGE__->plugins;
 
 __PACKAGE__->mk_accessors(
-    qw/container indicator legend query subcontainer uploads strict empty_errors/
+    qw/container indicator legend query subcontainer uploads strict empty_errors element_container_class/
 );
 __PACKAGE__->mk_attr_accessors(qw/action enctype id method/);
 
@@ -30,7 +30,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.06';
+our $VERSION = '1.07';
 
 =head1 NAME
 
@@ -205,6 +205,13 @@ Get/Set the tag used to contain the XML output when as_xml is called on the
 HTML::Widget object.
 Defaults to C<form>.
 
+=head2 $self->element_container_class($class_name)
+
+Get/Set the container_class override for all elements in this widget. If set to
+non-zero value, process will call $element->container_class($class_name) for
+each element. Defaults to not set.
+
+See L<HTML::Widget::Element::container_class>.
 
 =head2 $self->elem( $type, $name )
 
@@ -219,6 +226,22 @@ methods specific to each one.
 The type can be one of the following:
 
 =over 4
+
+=item L<HTML::Widget::Element::Button>
+
+    my $e = $widget->element( 'Button', 'foo' );
+    $e->value('bar');
+
+Add a button element.
+
+    my $e = $widget->element( 'Button', 'foo' );
+    $e->value('bar');
+    $e->content('<b>arbitrary markup</b>');
+    $e->type('submit');
+
+Add a button element which uses a C<button> html tag rather than an 
+C<input> tag. The value of C<content> is not html-escaped, so may contain 
+html markup.
 
 =item L<HTML::Widget::Element::Checkbox>
 
@@ -278,7 +301,7 @@ here).
     $e = $widget->element( 'Reset', 'foo' );
     $e->value('bar');
 
-Create a reset button. The text on the button will default to "Submit", unless
+Create a reset button. The text on the button will default to "Reset", unless
 you call the value() method. This button resets the form to its original
 values.
 
@@ -310,6 +333,15 @@ constrained as they are not entry fields.
 
 Create a submit button. The text on the button will default to "Submit", unless
 you call the value() method. 
+
+    $e = $widget->element( 'Submit', 'foo' );
+    $e->value('bar');
+    $e->src('image.png');
+    $e->width(100);
+    $e->height(35);
+
+Create an image submit button. The button will be displayed as an image, 
+using the file at url C<src>.
 
 =item L<HTML::Widget::Element::Textarea>
 
@@ -848,6 +880,7 @@ sub process {
             strict        => $self->strict,
             empty_errors  => $self->empty_errors,
             submitted     => ( $query ? 1 : 0 ),
+            element_container_class => $self->element_container_class,
         }
     );
 }

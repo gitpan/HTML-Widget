@@ -38,6 +38,7 @@ lib/HTML/Widget/Constraint/String.pm
 lib/HTML/Widget/Constraint/Time.pm
 lib/HTML/Widget/Container.pm
 lib/HTML/Widget/Element.pm
+lib/HTML/Widget/Element/Button.pm
 lib/HTML/Widget/Element/Checkbox.pm
 lib/HTML/Widget/Element/Hidden.pm
 lib/HTML/Widget/Element/Password.pm
@@ -74,6 +75,7 @@ t/06bugs_result_params_multiple.t
 t/06bugs_value_empty_string.t
 t/06bugs_value_zero.t
 t/06bugs_zero_xml.t
+t/07custom_render.t
 t/constraint_all.t
 t/constraint_allornone.t
 t/constraint_any.t
@@ -94,12 +96,15 @@ t/constraint_range.t
 t/constraint_regex.t
 t/constraint_string.t
 t/constraint_time.t
+t/element_button.t
+t/element_button_tag.t
 t/element_checkbox.t
 t/element_hidden.t
 t/element_password.t
 t/element_radio.t
 t/element_radiogroup.t
 t/element_radiogroup_implicit_in_constraint.t
+t/element_reset.t
 t/element_select.t
 t/element_select_implicit_in_constraint.t
 t/element_span.t
@@ -118,5 +123,6 @@ t/get_constraints.t
 t/get_elements.t
 t/get_filters.t
 t/lib/HTMLWidget/TestLib.pm
+t/lib/TestContainer.pm
 t/result_add_error.t
 t/submitted.t

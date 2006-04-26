@@ -7,6 +7,9 @@ use NEXT;
 
 __PACKAGE__->mk_accessors(qw/value/);
 
+# alias
+*label = \&value;
+
 =head1 NAME
 
 HTML::Widget::Element::Reset - Reset Element
@@ -22,19 +25,20 @@ Reset Element.
 
 =head1 METHODS
 
-=head2 new
+=head2 value
+
+=head2 label
+
+The value of this Reset element. Is also used by the browser as the 
+button label.
+
+If not set, the browser will usually display the label as "Reset".
+
+=head2 $self->containerize( $widget, $value )
 
 =cut
 
-sub new {
-    shift->NEXT::new(@_)->value(1);
-}
-
-=head2 $self->render( $widget, $value )
-
-=cut
-
-sub render {
+sub containerize {
     my ( $self, $w, $value ) = @_;
 
     $value ||= $self->value;

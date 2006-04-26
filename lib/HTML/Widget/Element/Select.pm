@@ -35,7 +35,7 @@ from the L</options> list are considered valid.
 
 =head2 comment
 
-Add a comment to this Element.
+Add a comment to this Element's label.
 
 =head2 label
 
@@ -116,11 +116,11 @@ sub process {
     return $errors;
 }
 
-=head2 $self->render( $widget, $value, $errors )
+=head2 $self->containerize( $widget, $value, $errors )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value, $errors ) = @_;
 
     my $options = $self->options;
@@ -162,11 +162,13 @@ sub render {
     $self->attributes->{class} ||= 'select';
     my $selectelm = HTML::Element->new('select');
     $selectelm->push_content(@o);
-    if ($label) {
-        $label->push_content($selectelm);
-    }
-
+	
+    # if ($label) {
+    #     $label->push_content($selectelm);
+    # }
+	#
     #    $l ? ( $l->push_content($i) ) : ( $l = $i );
+
     my $id = $self->id($w);
     $selectelm->attr( id   => $id );
     $selectelm->attr( name => $self->name );
@@ -181,7 +183,7 @@ sub render {
 
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $label || $selectelm, error => $e } );
+    return $self->container( { element => $selectelm, error => $e, label => $label } );
 }
 
 =head1 AUTHOR

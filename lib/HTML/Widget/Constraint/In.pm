@@ -48,6 +48,12 @@ HTML::Widget::Constraint::In - Check that a value is one of a current set.
 
 =head1 DESCRIPTION
 
+=head1 METHODS
+
+=head2 in
+
+A list of valid values for that element.
+
 =cut
 
 

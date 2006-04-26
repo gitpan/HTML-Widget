@@ -34,11 +34,11 @@ sub new {
 
 Default value is 1.
 
-=head2 $self->render( $widget, $value )
+=head2 $self->containerize( $widget, $value )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;

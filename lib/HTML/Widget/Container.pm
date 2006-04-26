@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw/element error javascript/);
+__PACKAGE__->mk_accessors(qw/element label error javascript/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
 
@@ -23,12 +23,14 @@ HTML::Widget::Container - Container
     
     my $field = $container->field;
     my $error = $container->error;
+	my $label = $container->label;
 
-    my $field_xml      = $container->field_xml;
+    my $field_xml      = $container->field_xml; 
     my $error_xml      = $container->error_xml;
     my $javascript_xml = $container->javascript_xml;
 
     my $xml = $container->as_xml;
+	# $xml eq "$container"
 
     my $javascript = $container->javascript;
 
@@ -53,6 +55,34 @@ sub as_xml {
     return $xml;
 }
 
+=head2 $self->_build_element($self->element)
+
+Convert $element to L<HTML::Element> object. Accepts arrayref.
+
+Most of the time if you wish to change the rendering behavoiur of HTML::Widget, you specify L<HTML::Widget::Element/container_class> to a custom class which just overrides this function.
+
+=cut
+
+sub _build_element {
+	my ($self, $element) = @_;
+
+	return () unless $element;
+	if (ref $element eq 'ARRAY') {
+		return map { $self->_build_element($_) } @{$element};
+	}
+	my $e = $element->clone;
+	my $class = $e->attr('class') || '';
+	$e = new HTML::Element('span', class => 'fields_with_errors')->push_content($e) if $self->error && $e->tag eq 'input';
+
+	if ($self->label) {
+		my $l = $self->label->clone;
+		# Do we prepend or append input to label?
+		$e = ($class eq 'checkbox' or $class eq 'radio') ? $l->unshift_content($e) : $l->push_content($e);
+	}
+
+	return $e ? ($e) : ();	
+}
+
 =head2 $self->as_list
 
 Returns a list of L<HTML::Element> objects.
@@ -63,11 +93,7 @@ sub as_list {
     my $self = shift;
     my @list;
     push @list, $self->javascript_element if $self->javascript;
-    if (ref $self->element eq 'ARRAY') {
-	push @list, @{$self->element};
-    } else {
-	push @list, $self->element            if $self->element;
-    }
+	push @list, $self->_build_element($self->element);
     push @list, $self->error              if $self->error;
     return @list;
 }
@@ -84,9 +110,8 @@ Returns xml for element.
 
 sub element_xml {
     my $self = shift;
-    return ref $self->element eq 'ARRAY' ? 
-	  join "", map { $_->as_XML } @{$self->element}  
-	: $self->element ? $self->element->as_XML : '';
+	my @e = $self->_build_element;
+	return join('', map( { $_->as_XML } $self->_build_element($self->element))  ) || '';
 }
 
 =head2 $self->error($error)

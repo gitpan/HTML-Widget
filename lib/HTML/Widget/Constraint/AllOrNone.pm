@@ -27,7 +27,7 @@ sub process {
     my $results = [];
     my $one;
     for my $name ( @{ $self->names } ) {
-        if( $self->not ? $params->{$name} : !$params->{$name} ) {
+        if( $self->not ? (defined $params->{$name} && length $params->{$name}) : (!defined $params->{$name} || !length $params->{$name}) ) {
            push @$results,
              HTML::Widget::Error->new(
                { name => $name, message => $self->mk_message } );

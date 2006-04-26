@@ -31,17 +31,19 @@ Textarea Element.
 
 =head2 new
 
+Create new textarea with default size of 20 rows and 40 columns
+
 =cut
 
 sub new {
     shift->NEXT::new(@_)->rows(20)->cols(40);
 }
 
-=head2 $self->render( $widget, $value, $errors )
+=head2 $self->containerize( $widget, $value, $errors )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value, $errors ) = @_;
 
     $value ||= $self->value;
@@ -59,12 +61,21 @@ sub render {
 
     $i->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );
-    $l ? ( $l->push_content($i) ) : ( $l = $i );
 
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $l, error => $e } );
+    return $self->container( { element => $i, error => $e, label => $l } );
 }
+
+=head2 label
+
+=head2 value
+
+=head2 cols
+
+=head2 rows
+
+=head2 wrap
 
 =head1 AUTHOR
 

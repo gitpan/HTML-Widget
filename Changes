@@ -1,5 +1,20 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.07 2006-04-26 10:53
+        - Added a Button element
+        - Submit and Reset values no longer default to "1"
+          (this was causing the browser to display the button label 
+          as "1" instead of "Submit" or "Reset")
+        - Added height() and width() accessors for image submit buttons
+        - Added support for <button> tags, with new content() method
+        - Added ability to customize HTML produced via 
+          H::W::Element::container_class.
+        - Can specify container_class on a per widget basis via 
+        - $w->element_container_class()
+        - Overloaded "" on Container to return as_xml
+        - All constraint counted empty strings as values
+        - AllOrNone constraint didn't treat 0 as a value
+
 1.06 2006-04-06 10:44
         - Added Module::Pluggable::Fast preloading for PAR packaging
           and the like

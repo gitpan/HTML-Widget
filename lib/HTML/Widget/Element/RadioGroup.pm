@@ -38,10 +38,13 @@ Add a comment to this Element.
 
 This label will be placed next to your Element.
 
-=head2 size
+=head2 values
 
-The size of a select element determines whether it will be displayed as a
-dropdown (size = 1), or a multi-select list element. The default is 1.
+List of form values for radio checks. Will also be used as labels if not otherwise specified viar L<labels>.
+
+=head2 labels
+
+The labels for corresponding l<values>.
 
 =head2 options
 
@@ -91,11 +94,11 @@ sub prepare {
     return;
 }
 
-=head2 $self->render( $widget, $value, $errors )
+=head2 $self->containerize( $widget, $value, $errors )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value, $errors ) = @_;
 
     $value ||= $self->value || '';
@@ -126,16 +129,16 @@ sub render {
 
     $self->_current_subelement( undef );
 
-    my $e = $self->mk_error( $w, $errors );
+    #my $error = $self->mk_error( $w, $errors );
 
     # this should really be a legend attr for field
-    my $box = $self->mk_label( $w, $self->label, $self->comment, $errors ) || HTML::Element->new("span");
-    $box->attr( for => undef );
-    $box->push_content( @radios );
+    my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
+    $l->attr( for => undef ) if $l;
 
     return $self->container({
-        element => $box,
+        element => HTML::Element->new('span')->push_content(@radios),
         error => scalar $self->mk_error( $w, $errors ),
+		label => $l
     });
 }
 

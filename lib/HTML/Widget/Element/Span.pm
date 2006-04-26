@@ -21,11 +21,11 @@ Span Element.
 
 =head1 METHODS
 
-=head2 $self->render( $widget, $value )
+=head2 $self->containerize( $widget, $value )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w ) = @_;
 
     my $content = $self->content;

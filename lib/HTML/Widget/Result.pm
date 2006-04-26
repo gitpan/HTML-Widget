@@ -2,13 +2,13 @@ package HTML::Widget::Result;
 
 use warnings;
 use strict;
-use base 'HTML::Widget::Accessor';
+use base qw/HTML::Widget::Accessor/;
 use HTML::Widget::Container;
 use HTML::Widget::Error;
 use HTML::Element;
 use Storable 'dclone';
 
-__PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict submitted/);
+__PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict submitted element_container_class/);
 __PACKAGE__->mk_attr_accessors(qw/action enctype id method empty_errors/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
@@ -51,6 +51,8 @@ Returns xml.
 sub as_xml {
     my $self = shift;
 
+    my $element_container_class = $self->{element_container_class};
+
     my $c = HTML::Element->new( $self->container, id => $self->name );
     $self->attributes( {} ) unless $self->attributes;
     $c->attr( $_ => ${ $self->attributes }{$_} )
@@ -79,12 +81,15 @@ sub as_xml {
                 $sc->push_content($l);
             }
             my $oldname = $embedded->name;
+            my $element_container_class = $embedded->{element_container_class} || $element_container_class;
             for my $element ( @{ $embedded->{_elements} } ) {
+                local $element->{container_class} = $element->container_class;
+                $element->{container_class} = $element_container_class if $element_container_class;
                 my $value = undef;
                 my $name  = $element->{name};
                 $value = $params->{$name} if ( $name && $params );
                 my $container =
-                  $element->render( $embedded, $value,
+                  $element->containerize( $embedded, $value,
                     $self->{_errors}->{$name} );
                 $params->{$name} = $value;
                 $container->{javascript} ||= '';
@@ -112,11 +117,13 @@ sub as_xml {
             $sc->push_content($l);
         }
         for my $element ( @{ $self->{_elements} } ) {
+            local $element->{container_class} = $element->container_class;
+            $element->{container_class} = $element_container_class if $element_container_class;
             my $value = undef;
             my $name  = $element->{name};
             $value = $params->{$name} if ( defined($name) && $params );
             my $container =
-              $element->render( $self, $value, $self->{_errors}->{$name} );
+              $element->containerize( $self, $value, $self->{_errors}->{$name} );
             $params->{$name} = $value;
             $container->{javascript} ||= '';
             $container->{javascript} .= $javascript{$name}
@@ -176,6 +183,9 @@ or a list of L<HTML::Widget::Container> objects for form.
 
 sub elements {
     my ( $self, $name ) = @_;
+
+    my $element_container_class = $self->{element_container_class};
+	
     my %javascript;
     for my $js_callback ( @{ $self->{_js_callbacks} } ) {
         my $javascript = $js_callback->( $self->name );
@@ -186,12 +196,14 @@ sub elements {
     my $params = dclone $self->{_params};
     my @form;
     for my $element ( @{ $self->{_elements} } ) {
+        local $element->{container_class} = $element->container_class;
+        $element->{container_class} = $element_container_class if $element_container_class;
         my $value = undef;
         my $ename = $element->{name};
         next if ( defined($name) && ( $ename ne $name ) );
         $value = $params->{$ename} if ( $ename && $params );
         my $container =
-          $element->render( $self, $value, $self->{_errors}->{$ename} );
+          $element->containerize( $self, $value, $self->{_errors}->{$ename} );
         $params->{$ename} = $value;
         $container->{javascript} ||= '';
         $container->{javascript} .= $javascript{$ename} if $javascript{$ename};

@@ -26,11 +26,11 @@ Textfield Element.
 
 =head1 METHODS
 
-=head2 $self->render( $widget, $value, $errors )
+=head2 $self->containerize( $widget, $value, $errors )
 
 =cut
 
-sub render {
+sub containerize {
     my ( $self, $w, $value, $errors ) = @_;
 
     $value ||= $self->value;
@@ -39,10 +39,9 @@ sub render {
 
     my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
     my $i = $self->mk_input( $w, { type => 'text', value => $value }, $errors );
-    $l ? ( $l->push_content($i) ) : ( $l = $i );
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $l, error => $e } );
+    return $self->container( { element => $i, error => $e, label => $l } );
 }
 
 =head1 AUTHOR

@@ -7,6 +7,7 @@ requires 'perl' => '5.8.1';
 requires 'HTML::Element';
 requires 'Class::Accessor::Fast';
 requires 'Class::Accessor::Chained::Fast';
+requires 'Class::Data::Accessor';
 requires 'HTML::Scrubber';
 requires 'Storable';
 requires 'Module::Pluggable::Fast';
