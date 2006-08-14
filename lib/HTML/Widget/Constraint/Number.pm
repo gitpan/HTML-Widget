@@ -28,7 +28,7 @@ Requires L<Scalar::Util>.
 sub validate {
     my ( $self, $value ) = @_;
     
-    return 1 if not defined $value;
+    return 1 if ! defined $value || $value eq '';
     
     return looks_like_number( $value );
 }

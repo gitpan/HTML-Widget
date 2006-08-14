@@ -26,7 +26,7 @@ $w->constraint( 'Email', 'foo' );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="sri\@oook.de" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="sri\@oook.de" /></fieldset></form>
 EOF
 }
 
@@ -36,7 +36,7 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="invalid" /></span><span class="error_messages" id="widget_foo_errors"><span class="email_errors" id="widget_foo_error_email">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="invalid" /></span><span class="error_messages" id="widget_foo_errors"><span class="email_errors" id="widget_foo_error_email">Invalid Input</span></span></fieldset></form>
 EOF
 }
 

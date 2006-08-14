@@ -22,7 +22,7 @@ ASCII Constraint.
 
 =cut
 
-sub regex { qr/^[\x21-\x7E]*$/ }
+sub regex { qr/^[\x20-\x7E]*$/ }
 
 =head1 AUTHOR
 

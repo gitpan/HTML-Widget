@@ -85,9 +85,9 @@ sub prepare {
         }
     }
     
-    my %options = @{ $self->options };
+    my %options = @{ $self->options } if (ref $self->options);
     my %seen;
-    my @uniq = grep { $seen{$_}++ == 0 ? $_ : 0 } keys %options;
+    my @uniq = grep { ! $seen{$_} ++ } keys %options;
     
     $w->constraint( 'In', $name )->in( @uniq )
         if @uniq;

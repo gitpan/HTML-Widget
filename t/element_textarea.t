@@ -18,7 +18,7 @@ $w->constraint( 'Integer', 'bar' );
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<textarea class="textarea" cols="20" id="widget_foo" name="foo" rows="40" wrap="off">foo</textarea></label><label for="widget_bar" id="widget_bar_label">Bar<span class="label_comments" id="widget_bar_comment">Baz</span><textarea class="textarea" cols="40" id="widget_bar" name="bar" rows="20"></textarea></label></fieldset></form>
+<form id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<textarea class="textarea" cols="20" id="widget_foo" name="foo" rows="40" wrap="off">foo</textarea></label><label for="widget_bar" id="widget_bar_label">Bar<span class="label_comments" id="widget_bar_comment">Baz</span><textarea class="textarea" cols="40" id="widget_bar" name="bar" rows="20"></textarea></label></fieldset></form>
 EOF
 }
 
@@ -30,6 +30,6 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<textarea class="textarea" cols="20" id="widget_foo" name="foo" rows="40" wrap="off">yada</textarea></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><label for="widget_bar" id="widget_bar_label">Bar<span class="label_comments" id="widget_bar_comment">Baz</span><textarea class="textarea" cols="40" id="widget_bar" name="bar" rows="20">23</textarea></label></fieldset></form>
+<form id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_foo" id="widget_foo_label">Foo<textarea class="textarea" cols="20" id="widget_foo" name="foo" rows="40" wrap="off">yada</textarea></label><span class="error_messages" id="widget_foo_errors"><span class="integer_errors" id="widget_foo_error_integer">Invalid Input</span></span><label for="widget_bar" id="widget_bar_label">Bar<span class="label_comments" id="widget_bar_comment">Baz</span><textarea class="textarea" cols="40" id="widget_bar" name="bar" rows="20">23</textarea></label></fieldset></form>
 EOF
 }

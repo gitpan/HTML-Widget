@@ -1,4 +1,4 @@
-use Test::More tests => 50;
+use Test::More tests => 49;
 
 use lib qw(t/lib);
 
@@ -6,7 +6,7 @@ BEGIN {
 	use_ok('HTML::Widget');
 	use_ok('HTML::Widget::Element');
 	use_ok('HTML::Widget::Element::Textfield');
-	use_ok('TestContainer');
+	#use_ok('TestContainer');
 }
 
 use HTMLWidget::TestLib;
@@ -176,13 +176,9 @@ EOF
 
 # Test $w->element_container_class
 {
-	use Storable 'dclone';
+    my $w2 = HTML::Widget->new('foo')->action('/foo');
 
-	my $w2 = HTML::Widget->new('foo')->action('/foo');
-
-	my $w3 = dclone $w;
-
-	$w2->merge($w3);
+	$w2->merge($w);
 
 	HTML::Widget::Element->container_class(undef);
 	HTML::Widget::Element::Textfield->container_class(undef);

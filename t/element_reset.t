@@ -14,6 +14,6 @@ $w->element( 'Reset', 'bar' );
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="reset" id="widget_foo" name="foo" type="reset" value="foo" /><input class="reset" id="widget_bar" name="bar" type="reset" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="reset" id="widget_foo" name="foo" type="reset" value="foo" /><input class="reset" id="widget_bar" name="bar" type="reset" /></fieldset></form>
 EOF
 }

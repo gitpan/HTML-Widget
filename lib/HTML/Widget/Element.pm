@@ -45,7 +45,8 @@ Creates a new $container_class. Defaults to L<HTML::Widget::Container>.
 sub container {
     my ( $self, $attributes ) = @_;
 	my $class = $self->container_class || 'HTML::Widget::Container';
-    return $class->new($attributes);
+    eval "require $class" or die "Unable to load element container class $class: $@";
+    return $class->new({passive => $self->passive, %$attributes});
 }
 
 sub container_class {
@@ -148,7 +149,7 @@ Creates a new label tag.
 
 sub mk_label {
     my ( $self, $w, $name, $comment, $errors ) = @_;
-    return undef unless $name;
+    return undef unless defined $name;
     my $for = $self->attributes->{id} || $self->id($w);
     my $id  = $for . '_label';
     my $e   = HTML::Element->new( 'label', for => $for, id => $id );

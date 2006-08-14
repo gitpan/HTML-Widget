@@ -60,16 +60,8 @@ sub as_xml {
 
     my $params = dclone $self->{_params};
 
-    my %javascript;
     if ( @{ $self->{_embedded} } ) {
         for my $embedded ( @{ $self->{_embedded} } ) {
-            for my $js_callback ( @{ $self->{_js_callbacks} } ) {
-                my $javascript = $js_callback->( $embedded->name );
-                for my $key ( keys %$javascript ) {
-                    $javascript{$key} .= $javascript->{$key}
-                      if $javascript->{$key};
-                }
-            }
             next unless $embedded->{_elements};
             my $sc =
               HTML::Element->new( $self->subcontainer, id => $embedded->name );
@@ -80,35 +72,15 @@ sub as_xml {
                 $l->push_content($legend);
                 $sc->push_content($l);
             }
-            my $oldname = $embedded->name;
-            my $element_container_class = $embedded->{element_container_class} || $element_container_class;
-            for my $element ( @{ $embedded->{_elements} } ) {
-                local $element->{container_class} = $element->container_class;
-                $element->{container_class} = $element_container_class if $element_container_class;
-                my $value = undef;
-                my $name  = $element->{name};
-                $value = $params->{$name} if ( $name && $params );
-                my $container =
-                  $element->containerize( $embedded, $value,
-                    $self->{_errors}->{$name} );
-                $params->{$name} = $value;
-                $container->{javascript} ||= '';
-                $container->{javascript} .= $javascript{$name}
-                  if $javascript{$name};
-                $sc->push_content( $container->as_list )
-                  unless $element->passive;
+            $element_container_class = $embedded->element_container_class if $embedded->element_container_class;
+            local $self->{attributes}{id} = $embedded->id;
+            for my $element ( $self->_get_elements( $embedded->{_elements},
+              $params, $element_container_class) ) {
+                $sc->push_content($element->as_list) unless $element->passive;  
             }
-            $embedded->name($oldname);
             $c->push_content($sc);
         }
-    }
-    else {
-        for my $js_callback ( @{ $self->{_js_callbacks} } ) {
-            my $javascript = $js_callback->( $self->name );
-            for my $key ( keys %$javascript ) {
-                $javascript{$key} .= $javascript->{$key} if $javascript->{$key};
-            }
-        }
+    } else {
         my $sc = HTML::Element->new( $self->subcontainer );
         if ( my $legend = $self->legend ) {
             my $id = $self->name;
@@ -116,19 +88,8 @@ sub as_xml {
             $l->push_content($legend);
             $sc->push_content($l);
         }
-        for my $element ( @{ $self->{_elements} } ) {
-            local $element->{container_class} = $element->container_class;
-            $element->{container_class} = $element_container_class if $element_container_class;
-            my $value = undef;
-            my $name  = $element->{name};
-            $value = $params->{$name} if ( defined($name) && $params );
-            my $container =
-              $element->containerize( $self, $value, $self->{_errors}->{$name} );
-            $params->{$name} = $value;
-            $container->{javascript} ||= '';
-            $container->{javascript} .= $javascript{$name}
-              if $javascript{$name};
-            $sc->push_content( $container->as_list ) unless $element->passive;
+        for my $element ( $self->_get_elements($self->{_elements}, $params, $element_container_class ) ) {
+            $sc->push_content($element->as_list) unless $element->passive;
         }
         $c->push_content($sc);
     }
@@ -157,12 +118,14 @@ Returns a list of L<HTML::Widget::Error> objects.
 
 sub errors {
     my ( $self, $name, $type ) = @_;
+
+    return 0 if $name && !$self->{_errors}->{$name};
+    
     my $errors = [];
     my @names = $name || keys %{ $self->{_errors} };
-    if ($name) { return 0 unless $self->{_errors}->{$name} }
     for my $n (@names) {
         for my $error ( @{ $self->{_errors}->{$n} } ) {
-            if ($type) { next unless $error->{type} ne $type }
+            next if $type &&  $error->{type} ne $type;
             push @$errors, $error;
         }
     }
@@ -184,8 +147,27 @@ or a list of L<HTML::Widget::Container> objects for form.
 sub elements {
     my ( $self, $name ) = @_;
 
-    my $element_container_class = $self->{element_container_class};
-	
+    my $params = dclone $self->{_params};
+
+    if (scalar @{ $self->{_embedded} } ) {
+        return map {
+            # set id so embedded elements have correct names
+            local $self->{attributes}->{id} = $_->id;
+            $self->_get_elements(
+                $_->{_elements}, $params, $_->{element_container_class}, $name
+            );
+
+        } @{ $self->{_embedded} };
+    }
+
+    return $self->_get_elements($self->{_elements}, $params, 
+      $self->{element_container_class}, $name);
+}
+
+# code reuse++
+sub _get_elements {
+    my ($self, $elements, $params, $element_container_class, $name) = @_;
+    
     my %javascript;
     for my $js_callback ( @{ $self->{_js_callbacks} } ) {
         my $javascript = $js_callback->( $self->name );
@@ -193,15 +175,14 @@ sub elements {
             $javascript{$key} .= $javascript->{$key} if $javascript->{$key};
         }
     }
-    my $params = dclone $self->{_params};
+
     my @form;
-    for my $element ( @{ $self->{_elements} } ) {
-        local $element->{container_class} = $element->container_class;
-        $element->{container_class} = $element_container_class if $element_container_class;
+    for my $element ( @$elements ) {
+        local $element->{container_class} = $element_container_class if $element_container_class;
         my $value = undef;
         my $ename = $element->{name};
         next if ( defined($name) && ( $ename ne $name ) );
-        $value = $params->{$ename} if ( $ename && $params );
+        $value = $params->{$ename} if ( defined($ename) && $params );
         my $container =
           $element->containerize( $self, $value, $self->{_errors}->{$ename} );
         $params->{$ename} = $value;

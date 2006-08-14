@@ -20,7 +20,7 @@ $w->constraint( 'AllOrNone', 'foo', 'bar' );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_bar" name="bar" type="text" value="yada" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_bar" name="bar" type="text" value="yada" /></fieldset></form>
 EOF
 }
 
@@ -30,7 +30,7 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" /></fieldset></form>
 EOF
 }
 
@@ -40,7 +40,7 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="allornone_errors" id="widget_bar_error_allornone">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="allornone_errors" id="widget_bar_error_allornone">Invalid Input</span></span></fieldset></form>
 EOF
 }
 
@@ -55,7 +55,7 @@ EOF
 	is_deeply([ ], [$f->errors], "Empty Strings do not count as values"); 
 	
 	is("$f", <<EOF, 'Output is XML form');
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" /></fieldset></form>
 EOF
 }
 
@@ -70,6 +70,6 @@ EOF
 			'Query parameter of "0" counts as value');
 
 	is("$f", <<EOF, 'Output is XML form with errors');
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="allornone_errors" id="widget_bar_error_allornone">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="allornone_errors" id="widget_bar_error_allornone">Invalid Input</span></span></fieldset></form>
 EOF
 }

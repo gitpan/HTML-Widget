@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw/element label error javascript/);
+__PACKAGE__->mk_accessors(qw/element label error javascript passive/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
 
@@ -49,8 +49,8 @@ Returns xml.
 sub as_xml {
     my $self = shift;
     my $xml  = '';
-    $xml .= $self->javascript_xml if $self->javascript;
     $xml .= $self->element_xml    if $self->element;
+    $xml .= $self->javascript_xml if $self->javascript;
     $xml .= $self->error_xml      if $self->error;
     return $xml;
 }
@@ -59,7 +59,9 @@ sub as_xml {
 
 Convert $element to L<HTML::Element> object. Accepts arrayref.
 
-Most of the time if you wish to change the rendering behavoiur of HTML::Widget, you specify L<HTML::Widget::Element/container_class> to a custom class which just overrides this function.
+Most of the time if you wish to change the rendering behavoiur of 
+HTML::Widget, you specify L<HTML::Widget::Element/container_class> 
+to a custom class which just overrides this function.
 
 =cut
 
@@ -72,12 +74,17 @@ sub _build_element {
 	}
 	my $e = $element->clone;
 	my $class = $e->attr('class') || '';
-	$e = new HTML::Element('span', class => 'fields_with_errors')->push_content($e) if $self->error && $e->tag eq 'input';
+	if ($self->error && $e->tag eq 'input') {
+	   $e = HTML::Element->new('span', class => 'fields_with_errors')
+	                     ->push_content($e)
+	}
 
 	if ($self->label) {
 		my $l = $self->label->clone;
 		# Do we prepend or append input to label?
-		$e = ($class eq 'checkbox' or $class eq 'radio') ? $l->unshift_content($e) : $l->push_content($e);
+		$e = ($class eq 'checkbox' or $class eq 'radio')
+		   ? $l->unshift_content($e)
+		   : $l->push_content($e);
 	}
 
 	return $e ? ($e) : ();	
@@ -92,8 +99,8 @@ Returns a list of L<HTML::Element> objects.
 sub as_list {
     my $self = shift;
     my @list;
-    push @list, $self->javascript_element if $self->javascript;
 	push @list, $self->_build_element($self->element);
+	push @list, $self->javascript_element if $self->javascript;
     push @list, $self->error              if $self->error;
     return @list;
 }
@@ -111,7 +118,8 @@ Returns xml for element.
 sub element_xml {
     my $self = shift;
 	my @e = $self->_build_element;
-	return join('', map( { $_->as_XML } $self->_build_element($self->element))  ) || '';
+	return join('', map( { $_->as_XML } $self->_build_element($self->element)) )
+	                || '';
 }
 
 =head2 $self->error($error)
@@ -139,7 +147,8 @@ sub javascript_element {
     my $self    = shift;
     my $script  = HTML::Element->new( 'script', type => 'text/javascript' );
     my $content = "\n<!--\n" . $self->javascript . "\n//-->\n";
-    $script->push_content($content);
+    my $literal = HTML::Element->new( '~literal', text => $content );
+    $script->push_content($literal);
     return $script;
 }
 

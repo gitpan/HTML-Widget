@@ -24,7 +24,7 @@ $w->filter( 'LowerCase', 'foo' );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="Bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="Bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
 EOF
 }
 
@@ -46,7 +46,7 @@ $w2->filter('LowerCase');
 
     my $f = $w2->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
 EOF
 }
 
@@ -69,6 +69,6 @@ $w3->filter('LowerCase');
 
     my $f = $w3->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input class="textfield" id="widget_foo" name="foo" size="30" type="text" value="foo" /></label><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="bar" /></span><span class="error_messages" id="widget_bar_errors"><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span><span class="integer_errors" id="widget_bar_error_integer">Invalid Input</span></span></fieldset></form>
 EOF
 }

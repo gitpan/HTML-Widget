@@ -17,7 +17,7 @@ $w->constraint( 'Callback', 'foo' )->callback( sub { return 1 if $_[0] } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></fieldset></form>
 EOF
 }
 
@@ -27,7 +27,7 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" /></span><span class="error_messages" id="widget_foo_errors"><span class="callback_errors" id="widget_foo_error_callback">Invalid Input</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" /></span><span class="error_messages" id="widget_foo_errors"><span class="callback_errors" id="widget_foo_error_callback">Invalid Input</span></span></fieldset></form>
 EOF
 }
 

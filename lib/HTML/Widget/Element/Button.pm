@@ -48,6 +48,8 @@ Defaults to C<button>. Also valid is C<submit> and C<reset>.
 
 =head2 $self->render( $widget, $value )
 
+=head2 containerize
+
 =cut
 
 sub containerize {

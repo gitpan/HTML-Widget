@@ -16,7 +16,7 @@ $w->constraint( 'Integer', 'bar' );
 # Without query
 {
     my $f = $w->process();
-print "Submitted: ", $f->submitted, "\n";
+
     is($f->submitted, 0, 'Form was not submitted');
 }
 # With mocked basic query

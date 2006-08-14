@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Element';
 
-__PACKAGE__->mk_accessors(qw/comment label options values labels comments value _current_subelement/);
+__PACKAGE__->mk_accessors(qw/comment label values labels comments value _current_subelement/);
 
 =head1 NAME
 
@@ -46,14 +46,7 @@ List of form values for radio checks. Will also be used as labels if not otherwi
 
 The labels for corresponding l<values>.
 
-=head2 options
-
-A list of options in key => value format. Each key is the unique id of an
-option tag, and its corresponding value is the text displayed in the element.
-
-=head2 selected
-
-A list of keys (unique option ids) which will be pre-set to "selected".
+=head2 new
 
 =cut
 
@@ -86,7 +79,7 @@ sub prepare {
     }
     
     my %seen;
-    my @uniq = grep { $seen{$_}++ == 0 ? $_ : 0 } @{ $self->values };
+    my @uniq = grep { ! $seen{$_} ++ } @{ $self->values };
     
     $w->constraint( 'In', $name )->in( @uniq )
         if @uniq;
@@ -141,6 +134,10 @@ sub containerize {
 		label => $l
     });
 }
+
+=head2 id
+
+=cut
 
 sub id {
 	my ( $self, $w ) = @_;

@@ -19,6 +19,10 @@ HTML::Widget::Constraint::Regex - Regex Constraint
 
 Regex Constraint.
 
+The Regex constraint always allows an C<undef> value or an empty string. 
+If you don't want this behaviour, also use the 
+L<HTML::Widget::Constraint::All|All constraint>.
+
 =head1 METHODS
 
 =head2 $self->regex($regex)
@@ -30,7 +34,9 @@ Regex Constraint.
 sub validate {
     my ( $self, $value ) = @_;
     my $regex = $self->regex || qr/.*/;
-    return 0 if ( defined $value && $value !~ $regex );
+    return 0 if ( defined $value
+                && $value ne ''
+                && $value !~ $regex );
     return 1;
 }
 

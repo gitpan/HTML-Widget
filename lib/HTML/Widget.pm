@@ -30,7 +30,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.07';
+our $VERSION = '1.08';
 
 =head1 NAME
 
@@ -197,7 +197,8 @@ sub new {
 
 =head1 $self->action($action)
 
-Get/Set the action associated with the form.
+Get/Set the action associated with the form. The default is no action, 
+which causes browsers to submit to the current URI.
 
 =head2 $self->container($tag)
 
@@ -222,6 +223,11 @@ and a name. The name is used for an id attribute on the field created for the
 element. An L<HTML::Widget::Element> object is returned, which can be used to
 set further attributes, please see the individual element classes for the 
 methods specific to each one.
+
+If the element starts with a name other than C<HTML::Widget::Element::>, 
+you can fully qualify the name by using a unary plus:
+
+    $self->element( "+Fully::Qualified::Name", $name );
 
 The type can be one of the following:
 
@@ -288,13 +294,12 @@ a group. That is, only one item in the group will be "on" at a time.
 
     my $e = $widget->element( 'RadioGroup', 'name', ['foo', 'bar', 'baz'] );
     $e->comment('(Required)');
-    $e->label('Foo');
-    $e->checked('bar');
-    $e->value('bar');
+    $e->label('Foo'); # Label for whole radio group
+    $e->value('bar'); # Currently selected value
+    $e->labels([qw/Fu Bur Garch/]); # default to ucfirst of values
 
 This is a shortcut to add multiple radio buttons with the same name at the
-same time. See above. (Note that the C<checked> method has a different meaning
-here).
+same time. See above.
 
 =item L<HTML::Widget::Element::Reset>
 
@@ -325,6 +330,9 @@ IDs, and the values are the strings displayed in the dropdown.
 
 Create a simple span tag, containing the given content. Spans cannot be
 constrained as they are not entry fields.
+
+The content may be a string, an L<HTML::Element|HTML::Element> object, 
+or an array-ref of L<HTML::Element|HTML::Element> objects.
 
 =item L<HTML::Widget::Element::Submit>
 
@@ -379,7 +387,7 @@ Create a field for uploading files. This will probably be rendered as a
 textfield, with a button for choosing a file.
 
 Adding an Upload element automatically calls
-C<$widget->enctype('multipart/form-data')> for you.
+C<< $widget->enctype('multipart/form-data') >> for you.
 
 =back
 
@@ -387,8 +395,11 @@ C<$widget->enctype('multipart/form-data')> for you.
 
 sub element {
     my ( $self, $type, $name ) = @_;
-    my $element =
-      $self->_instantiate( "HTML::Widget::Element::$type", { name => $name } );
+    
+    my $abs = $type =~ s/^\+//;
+    $type = "HTML::Widget::Element::$type" unless $abs;
+
+    my $element = $self->_instantiate( $type, { name => $name } );
 
     push @{ $self->{_elements} }, $element;
 
@@ -414,18 +425,41 @@ If a 'name' argument is given, only returns the elements with that name.
 sub get_elements {
     my ( $self, %opt ) = @_;
 
+    my @elements = @{$self->{_elements}} if $self->{_elements};
+    @elements = map { @{$_->{_elements} } } @{$self->{_embedded}} if $self->{_embedded};
+
     if ( exists $opt{type} ) {
         my $type = "HTML::Widget::Element::$opt{type}";
 
-        return grep { $_->isa($type) } @{ $self->{_elements} };
+        return grep { $_->isa($type) } @elements;
     }
     elsif ( exists $opt{name} ) {
         my $name = $opt{name};
 
-        return grep { $_->name eq $name } @{ $self->{_elements} };
+        return grep { $_->name eq $name } @elements;
     }
 
-    return @{ $self->{_elements} };
+    return @elements;
+}
+
+=head2 $self->get_element()
+
+    my $element = $self->get_element;
+    
+    my $element = $self->get_element( type => 'Textfield' );
+    
+    my $element = $self->get_element( name => 'username' );
+
+Similar to get_elements(), but only returns the first element in the list.
+
+Accepts the same arguments as get_elements().
+
+=cut
+
+sub get_element {
+    my ( $self, %opt ) = @_;
+
+    return ( $self->get_elements(%opt) )[0];
 }
 
 =head2 $self->const($tag)
@@ -438,6 +472,12 @@ against the specified constraints. The L<HTML::Widget::Constraint> object is
 returned to allow setting of further attributes to be set. The string 'Not_' 
 can be prepended to each type name to negate the effects. Thus checking for a 
 non-integer becomes 'Not_Integer'.
+
+If the constraint starts with a name other than 
+C<HTML::Widget::Constraint::>, you can fully qualify the name by using a 
+unary plus:
+
+    $self->constraint( "+Fully::Qualified::Name", @names );
 
 Constraint checking is done after L<HTML::Widget::Filter>s have been applied.
 
@@ -594,13 +634,18 @@ L<Date::Calc> module is required.
 sub constraint {
     my ( $self, $type, @names ) = @_;
     croak('constraint requires a constraint type') unless $type;
+    
+    my $abs = $type =~ s/^\+//;
+    
     my $not = 0;
     if ( $type =~ /^Not_(\w+)$/i ) {
         $not++;
         $type = $1;
     }
-    my $constraint = $self->_instantiate( "HTML::Widget::Constraint::$type",
-        { names => \@names } );
+    
+    $type = "HTML::Widget::Constraint::$type" unless $abs;
+    
+    my $constraint = $self->_instantiate( $type, { names => \@names } );
     $constraint->not($not);
     push @{ $self->{_constraints} }, $constraint;
     return $constraint;
@@ -628,6 +673,25 @@ sub get_constraints {
     }
 
     return @{ $self->{_constraints} };
+}
+
+=head2 $self->get_constraint()
+
+    my $constraint = $self->get_constraint;
+    
+    my $constraint = $self->get_constraint( type => 'Integer' );
+
+Similar to get_constraints(), but only returns the first constraint in the 
+list.
+
+Accepts the same arguments as get_constraints().
+
+=cut
+
+sub get_constraint {
+    my ( $self, %opt ) = @_;
+
+    return ( $self->get_constraints(%opt) )[0];
 }
 
 =head2 $self->embed(@widgets)
@@ -676,6 +740,11 @@ These are applied to actually change the contents of the fields, supplied by
 the user before checking the constraints. It only makes sense to apply filters
 to fields that can contain text - Password, Textfield, Textarea, Upload.
 
+If the filter starts with a name other than C<HTML::Widget::Filter::>, 
+you can fully qualify the name by using a unary plus:
+
+    $self->filter( "+Fully::Qualified::Name", @names );
+
 There are currently two types of filter:
 
 =over 4
@@ -701,9 +770,11 @@ Returns a L<HTML::Widget::Filter> object.
 
 sub filter {
     my ( $self, $type, @names ) = @_;
-    my $filter =
-      $self->_instantiate( "HTML::Widget::Filter::$type",
-        { names => \@names } );
+    
+    my $abs = $type =~ s/^\+//;
+    $type = "HTML::Widget::Filter::$type" unless $abs;
+    
+    my $filter = $self->_instantiate( $type, { names => \@names } );
     $filter->init($self);
     push @{ $self->{_filters} }, $filter;
     return $filter;
@@ -733,6 +804,25 @@ sub get_filters {
     return @{ $self->{_filters} };
 }
 
+=head2 $self->get_filter()
+
+    my @filters = $self->get_filter;
+    
+    my @filters = $self->get_filter( type => 'Integer' );
+
+Similar to get_filters(), but only returns the first filter in the 
+list.
+
+Accepts the same arguments as get_filters().
+
+=cut
+
+sub get_filter {
+    my ( $self, %opt ) = @_;
+
+    return ( $self->get_filters(%opt) )[0];
+}
+
 =head2 $self->id($id)
 
 Contains the widget id.
@@ -743,7 +833,7 @@ Contains the widget id.
 
 Set/Get a boolean field. This is a convenience method for the user, so they 
 can keep track of which of many Widget objects were submitted. It is also
-used by L<Catalyst::Plugin::HTML::Wdget>
+used by L<Catalyst::Plugin::HTML::Widget>
 
 =head2 $self->legend($legend)
 
@@ -795,7 +885,6 @@ sub process {
 
     # Some sane defaults
     if ( $self->container eq 'form' ) {
-        $self->attributes->{action} ||= '/';
         $self->attributes->{method} ||= 'post';
     }
 
@@ -911,6 +1000,17 @@ sub _instantiate {
     croak qq/Couldn't load class "$class", "$@"/ if $@;
     return $class->new(@args);
 }
+
+=head1 SUPPORT
+
+Mailing list:
+
+L<http://lists.rawmode.org/cgi-bin/mailman/listinfo/html-widget>
+
+=head1 SUBVERSION REPOSITORY
+
+The publicly viewable subversion code repository is at 
+L<http://oook.de/svn/trunk/HTML-Widget/>.
 
 =head1 SEE ALSO
 

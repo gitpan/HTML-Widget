@@ -21,6 +21,12 @@ Span Element.
 
 =head1 METHODS
 
+=head2 content
+
+C<content()> can contain a string, an 
+L<HTML::Element|HTML::Element> object, or an array-ref of 
+L<HTML::Element|HTML::Element> objects.
+
 =head2 $self->containerize( $widget, $value )
 
 =cut
@@ -31,7 +37,9 @@ sub containerize {
     my $content = $self->content;
     $self->attributes->{class} ||= 'span';
     my $e = HTML::Element->new( 'span', id => $self->id($w) );
-    $e->push_content($content) if $content;
+    my @content = ($content && ref($content) eq 'ARRAY') ? @$content : ($content)
+        if defined $content;
+    $e->push_content(@content) if @content;
     $e->attr( $_ => ${ $self->attributes }{$_} )
       for ( keys %{ $self->attributes } );
 

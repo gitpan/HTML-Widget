@@ -5,7 +5,7 @@ use strict;
 use base 'HTML::Widget::Element';
 
 __PACKAGE__->mk_accessors(qw/comment fill label value/);
-__PACKAGE__->mk_attr_accessors(qw/size/);
+__PACKAGE__->mk_attr_accessors(qw/size maxlength/);
 
 =head1 NAME
 

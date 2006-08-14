@@ -17,7 +17,7 @@ $w->constraint( 'Integer', 'bar' );
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="button" id="widget_foo" name="foo" type="button" value="foo" /><input class="button" id="widget_bar" name="bar" type="button" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="button" id="widget_foo" name="foo" type="button" value="foo" /><input class="button" id="widget_bar" name="bar" type="button" /></fieldset></form>
 EOF
 }
 
@@ -29,7 +29,7 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="button" id="widget_foo" name="foo" type="button" value="yada" /><input class="button" id="widget_bar" name="bar" type="button" value="23" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="button" id="widget_foo" name="foo" type="button" value="yada" /><input class="button" id="widget_bar" name="bar" type="button" value="23" /></fieldset></form>
 EOF
 
     ok( ! $f->valid('foo') );

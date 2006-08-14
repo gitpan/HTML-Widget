@@ -10,5 +10,5 @@ $w->constraint( 'All', 'foo' );
 
 my $f = $w->process();
 is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/" id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="0" /></fieldset></form>
+<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="0" /></fieldset></form>
 EOF

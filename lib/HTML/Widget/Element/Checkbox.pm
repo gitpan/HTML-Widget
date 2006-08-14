@@ -42,6 +42,41 @@ sub containerize {
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
+    my $name = $self->name;
+
+    # Search for multiple checkboxes with the same name
+    my $multi = 0;
+    my @elements;
+    push @elements, [ $w, $w->{_elements} ] if $w->{_elements};
+    if ( $w->{_embedded} ) {
+        for my $embedded ( @{ $w->{_embedded} } ) {
+            push @elements, [ $embedded, $embedded->{_elements} ]
+              if $embedded->{_elements};
+        }
+    }
+    for my $e (@elements) {
+        my $widget   = $e->[0];
+        my $elements = $e->[1];
+        for my $element (@$elements) {
+            next if $element eq $self;
+            if ( $element->isa('HTML::Widget::Element::Checkbox') ) {
+                if ( $element->name eq $name ) {
+                    $multi++;
+                }
+            }
+        }
+    }
+
+    # Generate unique id
+    if ($multi) {
+        $w->{_shash}          ||= {};
+        $w->{_stash}->{checkbox} ||= {};
+        my $num = ++$w->{_stash}->{checkbox}->{$name};
+        my $id = $self->id( $w, "$name\_$num" );
+        $self->attributes( {} ) unless $self->attributes;
+        $self->attributes->{id} ||= $id;
+    }
+
     my $checked = ( defined $value && $value eq $self->value ) ? 'checked' : undef;
     $checked = 'checked' if ( !defined $value && $self->checked );
     $value   = $self->value;
