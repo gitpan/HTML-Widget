@@ -34,21 +34,25 @@ sub new {
 
 Default value is 1.
 
-=head2 $self->containerize( $widget, $value )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
-    $value = $self->value if not defined $value;
-    
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
+
     my $i = $self->mk_input( $w, { type => 'hidden', value => $value } );
 
     return $self->container( { element => $i } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

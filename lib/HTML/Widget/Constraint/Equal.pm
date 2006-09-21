@@ -19,19 +19,19 @@ with the All constraint to make sure all elements are equal.
 
 =head1 METHODS
 
-=head2 $self->process( $widget, $params )
+=head2 process
 
 =cut
 
 sub process {
     my ( $self, $w, $params ) = @_;
     my $results = [];
-    my $equal=$params->{${$self->names}[0]};
+    my $equal   = $params->{ ${ $self->names }[0] };
     for my $name ( @{ $self->names } ) {
         push @$results,
-          HTML::Widget::Error->new(
+            HTML::Widget::Error->new(
             { name => $name, message => $self->mk_message } )
-          if $params->{$name} ne $equal;
+            if $params->{$name} ne $equal;
     }
     return $results;
 }

@@ -34,6 +34,8 @@ button label.
 
 If not set, the browser will usually display the label as "Submit".
 
+L</label> is an alias for L</value>.
+
 =head2 src
 
 If set, the element will be an image submit, using this url as image.
@@ -50,18 +52,18 @@ Only used if L</src> is set.
 
 Sets the width the image submit button should be rendered.
 
-=head2 $self->containerize( $widget, $value )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
-    $value ||= $self->value;
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
     my $i;
-    if ($self->src) {
+    if ( $self->src ) {
         my $args = { type => 'image', src => $self->src, value => $value };
         $args->{height} = $self->height() if defined $self->height;
         $args->{width}  = $self->width()  if defined $self->width;
@@ -74,6 +76,10 @@ sub containerize {
 
     return $self->container( { element => $i } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

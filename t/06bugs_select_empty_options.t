@@ -1,7 +1,9 @@
-use Test::More tests => 3;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 2;
 
+use HTML::Widget;
 my $w = HTML::Widget->new;
 
 $w->element( 'Select', 'foo' );
@@ -15,4 +17,4 @@ eval {
 EOF
 };
 
-ok( ! $@ );
+ok( !$@, 'no errors' );

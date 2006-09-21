@@ -1,5 +1,34 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.09 
+        - Embedding completely refactored by Michael Gray.
+        - $w->embed( $e, @widgets) embeds into the supplied element.
+        - New Fieldset element.
+        - Can add elements to Fieldset elements, as an alternative to using 
+          embed.
+        - New $w->xhtml_strict accessor. When true, doesn't allow non-block 
+          elements at the top-level of a form.
+        - New $w->legend accessor. Sets the label for the top-level fieldset.
+        - process() is now called for embedded widgets.
+        - After form submission, $result->as_xml() no longer uses an elements' 
+          default value if that field wasn't submitted.
+        - Removed In constraint change added in v1.08 (in which validate 
+          automatically passed an empty in() list)
+        - Select elements no longer automatically get an implicit In constraint 
+          added. Set constrain_options() to true to get the old behaviour.
+        - RadioGroup elements no longer automatically get an implicit In 
+          constraint added. Set constrain_values to true to get the old 
+          behaviour.
+        - New $w->explicit_ids( 1 ) method, stops auto-generation of id's in 
+          the xml output.
+        - New CallbackOnce constraint
+        - New HTML::Widget::Manual::Developer.pod
+        - Added checked() as an alias for value() in RadioGroup elements.
+        - Fixed many bugs when submitted values are 0 (zero) - particularly 
+          with $result->as_xml output.
+        - Fixed bug when element names contain regex characters.
+        - Fixed Range constraints handling of missing and empty values.
+
 1.08 2006-08-10 16:07
         - Changed $widget->action(). Instead of defaulting to "/" it is left 
           empty. This causes browsers to submit the form to the current URI.

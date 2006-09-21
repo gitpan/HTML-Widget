@@ -9,16 +9,20 @@ use Carp qw/croak/;
 
 # For PAR
 use Module::Pluggable::Fast
-  search =>
-  [qw/HTML::Widget::Element HTML::Widget::Constraint HTML::Widget::Filter/],
-  require => 1;
+    search =>
+    [qw/HTML::Widget::Element HTML::Widget::Constraint HTML::Widget::Filter/],
+    require => 1;
 
 __PACKAGE__->plugins;
 
 __PACKAGE__->mk_accessors(
-    qw/container indicator legend query subcontainer uploads strict empty_errors element_container_class/
+    qw/container indicator query subcontainer uploads strict empty_errors
+        element_container_class xhtml_strict unwrapped explicit_ids/
 );
-__PACKAGE__->mk_attr_accessors(qw/action enctype id method/);
+__PACKAGE__->mk_ro_accessors(qw/implicit_subcontainer/);
+
+# Custom attr_accessor for id provided later
+__PACKAGE__->mk_attr_accessors(qw/action enctype method/);
 
 use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 
@@ -30,7 +34,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.08';
+our $VERSION = '1.09';
 
 =head1 NAME
 
@@ -43,10 +47,13 @@ HTML::Widget - HTML Widget And Validation Framework
     # Create a widget
     my $w = HTML::Widget->new('widget')->method('get')->action('/');
 
+    # Add a fieldset to contain the elements
+    my $fs = $w->element( 'Fieldset', 'user' )->legend('User Details');
+
     # Add some elements
-    $w->element( 'Textfield', 'age' )->label('Age')->size(3);
-    $w->element( 'Textfield', 'name' )->label('Name')->size(60);
-    $w->element( 'Submit', 'ok' )->value('OK');
+    $fs->element( 'Textfield', 'age' )->label('Age')->size(3);
+    $fs->element( 'Textfield', 'name' )->label('Name')->size(60);
+    $fs->element( 'Submit', 'ok' )->value('OK');
 
     # Add some constraints
     $w->constraint( 'Integer', 'age' )->message('No integer.');
@@ -179,7 +186,11 @@ This Module is very powerful, don't misuse it as a template system!
 
 =head1 METHODS
 
-=head2 new( [$name] )
+=head2 new
+
+Arguments: $name
+
+Return Value: $widget
 
 Create a new HTML::Widget object. The name parameter will be used as the 
 id of the form created by the to_xml method.
@@ -195,18 +206,66 @@ sub new {
     return $self;
 }
 
-=head1 $self->action($action)
+=head2 action
+
+Arguments: $uri
+
+Return Value: $uri
 
 Get/Set the action associated with the form. The default is no action, 
-which causes browsers to submit to the current URI.
+which causes most browsers to submit to the current URI.
 
-=head2 $self->container($tag)
+=head2 attributes
+
+=head2 attrs
+
+Arguments: \%attributes
+
+Return Value: \%attributes
+
+The recommended way of setting attributes is to assign directly to a 
+hash-ref key, rather than passing an entire hash-ref, which would overwrite 
+any existing attributes.
+
+    # recommended - preserves existing key/value's
+    $w->attributes->{key} = $value;
+    
+    # NOT recommended - deletes existing key/value's
+    $w->attributes( { key => $value } );
+
+However, when a value is set in this recommended way, the object is not 
+returned, so cannot be used for further chained method calls.
+
+    $w->element( 'Textfield', 'foo' )
+        ->size( 10 )
+        ->attributes->{'disabled'} = 'disabled';
+    # we cannot chain any further method calls after this
+
+Therefore, to set multiple attributes, it is recommended you store the 
+appropriate object, and call L</attributes> multiple times.
+
+    my $e = $w->element( 'Textfield', 'foo' )->size( 10 );
+    
+    $e->attributes->{'disabled'} = 'disabled';
+    $e->attributes->{'id'}       = 'login';
+
+L</attrs> is an alias for L</attributes>.
+
+=head2 container
+
+Arguments: $tag
+
+Return Value: $tag
 
 Get/Set the tag used to contain the XML output when as_xml is called on the
 HTML::Widget object.
 Defaults to C<form>.
 
-=head2 $self->element_container_class($class_name)
+=head2 element_container_class
+
+Arguments: $class_name
+
+Return Value: $class_name
 
 Get/Set the container_class override for all elements in this widget. If set to
 non-zero value, process will call $element->container_class($class_name) for
@@ -214,9 +273,13 @@ each element. Defaults to not set.
 
 See L<HTML::Widget::Element::container_class>.
 
-=head2 $self->elem( $type, $name )
+=head2 elem
 
-=head2 $self->element( $type, $name )
+=head2 element
+
+Arguments: $type, $name
+
+Return Value: $element
 
 Add a new element to the Widget. Each element must be given at least a type, 
 and a name. The name is used for an id attribute on the field created for the 
@@ -258,6 +321,15 @@ html markup.
     $e->value('bar');
 
 Add a standard checkbox element.
+
+=item L<HTML::Widget::Element::Fieldset>
+
+    my $e = $widget->element( 'Fieldset', 'foo' );
+    $e->legend('Personal details');
+    $e->element('Textfield', 'name');
+    $e->element('Textarea', 'address');
+
+Adds a nested fieldset element, which can contain further elements.
 
 =item L<HTML::Widget::Element::Hidden>
 
@@ -395,18 +467,97 @@ C<< $widget->enctype('multipart/form-data') >> for you.
 
 sub element {
     my ( $self, $type, $name ) = @_;
-    
+
     my $abs = $type =~ s/^\+//;
     $type = "HTML::Widget::Element::$type" unless $abs;
 
     my $element = $self->_instantiate( $type, { name => $name } );
 
-    push @{ $self->{_elements} }, $element;
+    if ( $element->isa('HTML::Widget::Element::Block')
+        and not $element->{_pseudo_block} )
+    {
+
+        push @{ $self->{_elements} }, $element;
+
+    }
+    else {
+        croak "'$type' element not permitted at top level in xhtml_strict mode"
+            if $self->xhtml_strict;
+
+        my $implicit_subcontainer = $self->_get_implicit_subcontainer;
+        $implicit_subcontainer->push_content($element);
+    }
 
     return $element;
 }
 
-=head2 $self->get_elements()
+sub _first_element {
+    return $_[0]->{_elements}->[0];
+}
+
+sub _get_implicit_subcontainer {
+    my $self = shift;
+    return $self->_first_element if ( $self->implicit_subcontainer );
+
+    if ( $self->_first_element ) {
+        croak
+            "already a top-level container when trying to setup implicit container";
+    }
+
+    $self->{implicit_subcontainer} = 1;
+    my $container;
+    if ( $self->subcontainer eq 'fieldset' ) {
+        $container = $self->_instantiate('HTML::Widget::Element::Fieldset');
+    }
+    else {
+        $container = $self->_instantiate('HTML::Widget::Element::Block');
+        $container->type( $self->subcontainer );
+    }
+
+    # Save away the parent widget's name for possible later use in
+    # H::W::Element::Block.
+    $container->name( '_implicit_' . $self->name );
+    push @{ $self->{_elements} }, $container;
+    return $container;
+}
+
+=head2 id
+
+=head2 name
+
+Arguments: $name
+
+Return Value: $name
+
+Get or set the widget id.
+
+L</name> is an alias for L</id>.
+
+=cut
+
+# Yuck - the name bodge above requires this nasty if uncommonly used fixup
+sub id {
+    my $self = shift;
+    if (    $self->implicit_subcontainer
+        and $_[0]
+        and $_[0] ne $self->{attributes}->{id} )
+    {
+        my $curr = $self->{attributes}->{id};
+
+        # fix up legacy widget names
+        map { $_->name( '_implicit_' . $_[0] ); }
+            grep { $_->name =~ /^_implicit_$curr/; } @{ $self->{_elements} };
+    }
+    return ( $self->{attributes}->{id} || $self ) unless @_ > 0;
+    $self->{attributes}->{id} = ( @_ == 1 ? $_[0] : [@_] );
+    return $self;
+}
+
+=head2 get_elements
+
+Arguments: %options
+
+Return Value: @elements
 
     my @elements = $self->get_elements;
     
@@ -425,8 +576,10 @@ If a 'name' argument is given, only returns the elements with that name.
 sub get_elements {
     my ( $self, %opt ) = @_;
 
-    my @elements = @{$self->{_elements}} if $self->{_elements};
-    @elements = map { @{$_->{_elements} } } @{$self->{_embedded}} if $self->{_embedded};
+    my @elements;
+    @elements = @{ $self->{_elements} } if $self->{_elements};
+    @elements = @{ $self->_first_element->content }
+        if $self->implicit_subcontainer;
 
     if ( exists $opt{type} ) {
         my $type = "HTML::Widget::Element::$opt{type}";
@@ -442,7 +595,11 @@ sub get_elements {
     return @elements;
 }
 
-=head2 $self->get_element()
+=head2 get_element
+
+Arguments: %options
+
+Return Value: $element
 
     my $element = $self->get_element;
     
@@ -462,9 +619,33 @@ sub get_element {
     return ( $self->get_elements(%opt) )[0];
 }
 
-=head2 $self->const($tag)
+=head2 find_elements
 
-=head2 $self->constraint( $type, @names )
+Arguments: %options
+
+Return Value: @elements
+
+Similar to get_elements(), and has the same alternate forms, but performs a
+recursive search through block-level elements.
+
+=cut
+
+sub find_elements {
+    my ( $self, %opt ) = @_;
+
+    my @elements;
+    push( @elements, map { $_->find_elements(%opt); } @{ $self->{_elements} } )
+        if $self->{_elements};
+    return @elements;
+}
+
+=head2 const
+
+=head2 constraint
+
+Arguments: $type, @field_names
+
+Return Value: $constraint
 
 Set up a constraint on one or more elements. When process() is called on the
 Widget object, with a $query object, the parameters of the query are checked 
@@ -634,24 +815,28 @@ L<Date::Calc> module is required.
 sub constraint {
     my ( $self, $type, @names ) = @_;
     croak('constraint requires a constraint type') unless $type;
-    
+
     my $abs = $type =~ s/^\+//;
-    
+
     my $not = 0;
     if ( $type =~ /^Not_(\w+)$/i ) {
         $not++;
         $type = $1;
     }
-    
+
     $type = "HTML::Widget::Constraint::$type" unless $abs;
-    
+
     my $constraint = $self->_instantiate( $type, { names => \@names } );
     $constraint->not($not);
     push @{ $self->{_constraints} }, $constraint;
     return $constraint;
 }
 
-=head2 $self->get_constraints()
+=head2 get_constraints
+
+Arguments: %options
+
+Return Value: @constraints
 
     my @constraints = $self->get_constraints;
     
@@ -675,7 +860,11 @@ sub get_constraints {
     return @{ $self->{_constraints} };
 }
 
-=head2 $self->get_constraint()
+=head2 get_constraint
+
+Arguments: %options
+
+Return Value: $constraint
 
     my $constraint = $self->get_constraint;
     
@@ -694,46 +883,125 @@ sub get_constraint {
     return ( $self->get_constraints(%opt) )[0];
 }
 
-=head2 $self->embed(@widgets)
+=head2 embed
+
+Arguments: @widgets
+
+Arguments: $element, @widgets
 
 Insert the contents of another widget object into this one. Each embedded
 object will be represented as another set of fields (surrounded by a fieldset
 tag), inside the created form. No copy is made of the widgets to embed, thus
 calling as_xml on the resulting object will change data in the widget objects.
 
+With an element argument, the widgets are embedded into the provided element.
+No checks are made on whether the provided element belongs to $self.
+
+Note that without an element argument, embed embeds into the top level
+of the widget, and NOT into any subcontainer (whether created by you
+or implicitly created).  If this is not what you need, you can choose
+one of:
+
+    # while building $self:
+    $in_here = $self->element('Fieldset', 'my_fieldset');
+    # later:
+    $self->embed($in_here, @widgets);
+
+    # these are equivalent: 
+    $self->embed(($self->find_elements)[0], @widgets);
+    $self->embed_into_first(@widgets); # but this is faster!
+
+If you are just building a widget and do not need to import constraints
+and filters from another widget, do not use embed at all, simply
+assemble using the methods provided by L<HTML::Widget::Element::Fieldset>.
+
 =cut
 
 sub embed {
     my ( $self, @widgets ) = @_;
+
+    my $dest;
+    if ( $widgets[0]->isa('HTML::Widget::Element') ) {
+        croak "destination element is not a container"
+            unless $widgets[0]->isa('HTML::Widget::Element::NullContainer');
+        $dest = shift @widgets;
+    }
+
     for my $widget (@widgets) {
-        push @{ $self->{_embedded} }, $widget;
-        push @{ $self->{_embedded} }, @{ $widget->{_embedded} }
-          if $widget->{_embedded};
+
+        if ($dest) {
+            $dest->push_content( @{ $widget->{_elements} } );
+        }
+        else {
+            push @{ $self->{_elements} }, @{ $widget->{_elements} }
+                if $widget->{_elements};
+        }
+
         push @{ $self->{_constraints} }, @{ $widget->{_constraints} }
-          if $widget->{_constraints};
+            if $widget->{_constraints};
         push @{ $self->{_filters} }, @{ $widget->{_filters} }
-          if $widget->{_filters};
-        my $sc_id = $self->name . '_' . $widget->name;
-        $widget->name($sc_id);
+            if $widget->{_filters};
     }
     return $self;
 }
 
-=head2 $self->empty_errors(1)
+=head2 embed_into_first
+
+Arguments: @widgets
+
+As for L</embed>, but embed into the first subcontainer (fieldset) rather than
+into the top level form.
+
+=cut
+
+sub embed_into_first {
+    my $self = shift;
+    my $dest = $self->_first_element;
+    return $self->embed( $dest, @_ );
+}
+
+=head2 empty_errors
+
+Arguments: $bool
+
+Return Value: $bool
 
 After validation, if errors are found, a span tag is created with the id 
 "fields_with_errors". Set this value to cause the span tag to always be 
 generated.
 
-=head2 $self->enctype($enctype)
+=head2 enctype
 
-Set/Get the encoding type of the form. This can be either "application/x-www-form-urlencoded" which is the default, or "multipart/form-data".
+Arguments: $enctype
+
+Return Value: $enctype
+
+Set/Get the encoding type of the form. This can be either 
+"application/x-www-form-urlencoded" which is the default, or 
+"multipart/form-data".
 See L<http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4>.
 
 If the widget contains an Upload element, the enctype is automatically set to
 'multipart/form-data'.
 
-=head2 $self->filter( $type, @names )
+=head2 explicit_ids
+
+Argument: $bool
+
+Return Value: $bool
+
+When true; elements, fieldsets and blocks will not be given DOM id's, unless 
+explicitly set with L<attributes|HTML::Widget::Accessor/attributes>.
+
+    $element->attributes->{id} = 'my_id'; 
+
+The form itself will always be given an L</id>, which is C<widget> by default.
+
+=head2 filter
+
+Arguments: $type, @field_names
+
+Return Value: $filter
 
 Add a filter. Like constraints, filters can be applied to one or more elements.
 These are applied to actually change the contents of the fields, supplied by
@@ -770,17 +1038,21 @@ Returns a L<HTML::Widget::Filter> object.
 
 sub filter {
     my ( $self, $type, @names ) = @_;
-    
+
     my $abs = $type =~ s/^\+//;
     $type = "HTML::Widget::Filter::$type" unless $abs;
-    
+
     my $filter = $self->_instantiate( $type, { names => \@names } );
     $filter->init($self);
     push @{ $self->{_filters} }, $filter;
     return $filter;
 }
 
-=head2 $self->get_filters()
+=head2 get_filters
+
+Arguments: %options
+
+Return Value: @filters
 
     my @filters = $self->get_filters;
     
@@ -804,7 +1076,11 @@ sub get_filters {
     return @{ $self->{_filters} };
 }
 
-=head2 $self->get_filter()
+=head2 get_filter
+
+Arguments: %options
+
+Return Value: $filter
 
     my @filters = $self->get_filter;
     
@@ -823,56 +1099,121 @@ sub get_filter {
     return ( $self->get_filters(%opt) )[0];
 }
 
-=head2 $self->id($id)
+=head2 indi
 
-Contains the widget id.
+=head2 indicator
 
-=head2 $self->indi($indicator)
+Arguments: $field_name
 
-=head2 $self->indicator($indicator)
+Return Value: $field_name
 
 Set/Get a boolean field. This is a convenience method for the user, so they 
 can keep track of which of many Widget objects were submitted. It is also
 used by L<Catalyst::Plugin::HTML::Widget>
 
-=head2 $self->legend($legend)
+=head2 legend
+
+Arguments: $legend
+
+Return Value: $legend
 
 Set/Get a legend for this widget. This tag is used to label the fieldset. 
 
-=head2 $self->merge(@widget)
+=cut
+
+sub legend {
+    my ( $self, $legend ) = @_;
+
+    croak "'legend' not permitted at top level in xhtml_strict mode"
+        if $self->xhtml_strict;
+
+    my $top_level = $self->_get_implicit_subcontainer;
+    unless ( $top_level->can('legend') ) {
+        croak "implicit subcontainer does not support 'legend'";
+    }
+
+    $top_level->legend($legend);
+    return $self;
+}
+
+=head2 merge
+
+Arguments: @widgets
+
+Arguments: $element, @widgets
 
 Merge elements, constraints and filters from other widgets, into this one. The
 elements will be added to the end of the list of elements that have been set
 already.
 
+Without an element argument, and with standard widgets, the contents of the
+first top-level element of each widget will be merged into the first
+top-level element of this widget.
+This emulates the previous behaviour.
+
+With an element argument, the widgets are merged into the named element.
+No checks are made on whether the provided element belongs to $self.
+
 =cut
 
 sub merge {
     my ( $self, @widgets ) = @_;
+
+    my $dest;
+    if ( $widgets[0]->isa('HTML::Widget::Element') ) {
+        croak "destination element is not a container"
+            unless $widgets[0]->isa('HTML::Widget::Element::NullContainer');
+        $dest = shift @widgets;
+    }
+    else {
+        $dest = $self->_first_element;
+        croak "merge only supported if destination first element is container"
+            if $dest
+            and not $dest->isa('HTML::Widget::Element::NullContainer');
+
+        $dest = $self->_get_implicit_subcontainer unless $dest;
+    }
+
     for my $widget (@widgets) {
-        push @{ $self->{_elements} }, @{ $widget->{_elements} }
-          if $widget->{_elements};
+
+        my $source = $widget->_first_element;
+        croak "merge only supported if source first element is container"
+            unless $source
+            and $source->isa('HTML::Widget::Element::NullContainer');
+
+        $dest->push_content( @{ $source->content } );
+
         push @{ $self->{_constraints} }, @{ $widget->{_constraints} }
-          if $widget->{_constraints};
+            if $widget->{_constraints};
         push @{ $self->{_filters} }, @{ $widget->{_filters} }
-          if $widget->{_filters};
+            if $widget->{_filters};
     }
     return $self;
 }
 
-=head2 $self->method($method)
+=head2 method
 
-Set/Get the method used to submit the form. an be set to either "post" or
+Arguments: $method
+
+Return Value: $method
+
+Set/Get the method used to submit the form. Can be set to either "post" or
 "get". The default is "post".
 
-=head2 $self->result( $query, $uploads )
+=head2 result
 
-=head2 $self->process( $query, $uploads )
+=head2 process
+
+Arguments: $query, \@uploads
+
+Return Value: $result
 
 After finishing setting up the widget and all its elements, call either 
 process() or result() to create an L<HTML::Widget::Result>. If passed a $query
 it will run filters and validation on the parameters. The Result object can
 then be used to produce the HTML.
+
+L</result> is an alias for L</process>.
 
 =cut
 
@@ -903,15 +1244,6 @@ sub process {
         $constraint->init($self) unless $constraint->{_initialized};
         $constraint->{_initialized}++;
     }
-    if ( $self->{_embedded} ) {
-        for my $embedded ( @{ $self->{_embedded} } ) {
-            for my $element ( @{ $embedded->{_elements} } ) {
-                $element->prepare($self);
-                $element->init($self) unless $element->{_initialized};
-                $element->{_initialized}++;
-            }
-        }
-    }
 
     my @js_callbacks;
     for my $constraint ( @{ $self->{_constraints} } ) {
@@ -920,12 +1252,15 @@ sub process {
     my %params;
     if ($query) {
         croak "Invalid query object"
-          unless blessed($query)
-          and $query->can('param');
+            unless blessed($query)
+            and $query->can('param');
         my @params = $query->param;
         for my $param (@params) {
             my @values = $query->param($param);
             $params{$param} = @values > 1 ? \@values : $values[0];
+        }
+        for my $filter ( @{ $self->{_filters} } ) {
+            $filter->process( \%params, $uploads );
         }
         for my $element ( @{ $self->{_elements} } ) {
             my $results = $element->process( \%params, $uploads );
@@ -937,9 +1272,6 @@ sub process {
                 $result->type($class) if not defined $result->type;
                 push @{ $errors->{$name} }, $result;
             }
-        }
-        for my $filter ( @{ $self->{_filters} } ) {
-            $filter->process( \%params, $uploads );
         }
         for my $constraint ( @{ $self->{_constraints} } ) {
             my $results = $constraint->process( $self, \%params, $uploads );
@@ -954,52 +1286,70 @@ sub process {
         }
     }
 
-    return HTML::Widget::Result->new(
-        {
-            attributes    => $self->attributes,
-            container     => $self->container,
-            _constraints  => $self->{_constraints},
-            _elements     => $self->{_elements},
-            _embedded     => $self->{_embedded} || [],
-            _errors       => $errors,
-            _js_callbacks => \@js_callbacks,
-            _params       => \%params,
-            legend        => $self->legend,
-            subcontainer  => $self->subcontainer,
-            strict        => $self->strict,
-            empty_errors  => $self->empty_errors,
-            submitted     => ( $query ? 1 : 0 ),
+    return HTML::Widget::Result->new( {
+            attributes              => $self->attributes,
+            container               => $self->container,
+            _constraints            => $self->{_constraints},
+            _elements               => $self->{_elements},
+            _errors                 => $errors,
+            _js_callbacks           => \@js_callbacks,
+            _params                 => \%params,
+            subcontainer            => $self->subcontainer,
+            strict                  => $self->strict,
+            empty_errors            => $self->empty_errors,
+            submitted               => ( $query ? 1 : 0 ),
             element_container_class => $self->element_container_class,
-        }
-    );
+            implicit_subcontainer   => $self->implicit_subcontainer,
+            explicit_ids            => $self->explicit_ids,
+        } );
 }
 
-=head2 $self->query($query)
+=head2 query
+
+Arguments: $query
+
+Return Value: $query
 
 Set/Get the query object to use for validation input. The query object can also
 be passed to the process method directly.
 
-=head2 $self->strict($strict)
+=head2 strict
+
+Arguments: $bool
+
+Return Value: $bool
 
 Only consider parameters that pass at least one constraint valid.
 
-=head2 $self->subcontainer($tag)
+=head2 subcontainer
+
+Arguments: $tag
+
+Return Value: $tag
 
 Set/Get the subcontainer tag to use.
 Defaults to C<fieldset>.
 
-=head2 $self->uploads($uploads)
+=head2 uploads
+
+Arguments: \@uploads
+
+Return Value: \@uploads
 
 Contains an arrayref of L<Apache2::Upload> compatible objects.
 
-=cut
+=head2 xhtml_strict
 
-sub _instantiate {
-    my ( $self, $class, @args ) = @_;
-    eval "require $class";
-    croak qq/Couldn't load class "$class", "$@"/ if $@;
-    return $class->new(@args);
-}
+Arguments: $bool
+
+Return Value: $bool
+
+When C<true>, it is an error to have any element at the top-level of the 
+widget which is not derived from L<HTML::Widget::Element::Block>. 
+Currently, the only valid element supplied is the  
+L<HTML::Widget::Element::Fieldset>.
+
+When C<true>, the top-level widget may not have a L/legend>.
 
 =head1 SUPPORT
 

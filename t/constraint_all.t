@@ -1,7 +1,9 @@
-use Test::More tests => 7;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 10;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -14,60 +16,51 @@ $w->constraint( 'All', 'foo', 'bar' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => 'yada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => 'nada',
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_bar" name="bar" type="text" value="yada" /></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+    is( $f->param('bar'), 'nada', 'bar value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yada', } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="all_errors" id="widget_bar_error_all">Invalid Input</span></span></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+
+    ok( $f->errors('bar'), 'bar has errors' );
 }
 
 # Empty strings - like an empty form as submitted by Firefox - should be error
 {
-	my $query = HTMLWidget::TestLib->mock_query({
-		foo => '', bar => ''
-	});
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => '',
+            bar => ''
+        } );
 
-	my $f = $w->process($query);
-	is_deeply([
-		new HTML::Widget::Error({ name => 'bar',
-		  type => 'All',
-		  message => 'Invalid Input'}),
-		new HTML::Widget::Error({ name => 'foo',
-		  type => 'All',
-		  message => 'Invalid Input'}),
+    my $f = $w->process($query);
 
-	], [$f->errors], "Errors are correct"); 
-
-	is("$f", <<EOF, 'XML output is form with errors')
-<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" /></span><span class="error_messages" id="widget_foo_errors"><span class="all_errors" id="widget_foo_error_all">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="all_errors" id="widget_bar_error_all">Invalid Input</span></span></fieldset></form>
-EOF
+    ok( $f->errors('foo'), 'foo has errors' );
+    ok( $f->errors('bar'), 'bar has errors' );
 }
 
 # "0" as a query value
 {
-	my $query = HTMLWidget::TestLib->mock_query({
-		foo => 0
-	});
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 0 } );
 
-	my $f = $w->process($query);
-	is_deeply([new HTML::Widget::Error({name => 'bar', type=>'All', message=>'Invalid Input'})], [$f->errors],
-			'Query parameter of "0" counts as value');
-	is("$f", <<EOF, 'XML output is form with error');
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="all_errors" id="widget_bar_error_all">Invalid Input</span></span></fieldset></form>
-EOF
+    my $f = $w->process($query);
+
+    ok( $f->valid('foo'), 'foo valid' );
+    is( $f->param('foo'), 0, 'foo value' );
+
+    ok( $f->errors('bar'), 'bar has errors' );
 }

@@ -18,11 +18,13 @@ HTTP URL Constraint.
 
 =head1 METHODS
 
-=head2 $self->regex
+=head2 regex
+
+Provides a regex to validate a HTTP/HTTPS URI.
 
 =cut
 
-sub regex { qr/^s?https?:\/\/[-_.!~*'()a-zA-Z0-9;\/?:\@&=+\$,%#]+$/ }
+sub regex {qr/^s?https?:\/\/[-_.!~*'()a-zA-Z0-9;\/?:\@&=+\$,%#]+$/}
 
 =head1 AUTHOR
 

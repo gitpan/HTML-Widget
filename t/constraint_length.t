@@ -1,7 +1,9 @@
-use Test::More tests => 8;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 9;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -13,53 +15,54 @@ $w->constraint( 'Length', 'foo' )->min(3)->max(4);
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'yada' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yada' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Valid (blank)
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => '' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => '' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /></fieldset></form>
-EOF
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'yadayada' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yadayada' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="yadayada" /></span><span class="error_messages" id="widget_foo_errors"><span class="length_errors" id="widget_foo_error_length">Invalid Input</span></span></fieldset></form>
-EOF
+
+    ok( $f->errors('foo'), 'foo has errors' );
 }
 
 # Multiple Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => [ 'yada', 'yada', 'yada' ],
-    });
+    my $query = HTMLWidget::TestLib->mock_query(
+        { foo => [ 'yad', 'yada', 'nada' ], } );
 
     my $f = $w->process($query);
+
     is( $f->valid('foo'), 1, "Valid" );
+
     my @results = $f->param('foo');
-    is( $results[0], 'yada', "Multiple valid values" );
-    is( $results[2], 'yada', "Multiple valid values" );
+    is( $results[0], 'yad',  "Multiple valid values" );
+    is( $results[1], 'yada', "Multiple valid values" );
+    is( $results[2], 'nada', "Multiple valid values" );
 }
 
 # Multiple Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => [ 'yada', 'yadayada', 'yadayada' ],
-    });
+    my $query = HTMLWidget::TestLib->mock_query(
+        { foo => [ 'yada', 'yadayada', 'yadayada' ], } );
 
     my $f = $w->process($query);
-    is( $f->valid('foo'), 0, "Invalid" );
+
+    ok( $f->errors('foo'), 'foo has errors' );
 }

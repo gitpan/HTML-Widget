@@ -21,13 +21,13 @@ HTML Strip Filter.
 
 =head1 METHODS
 
-=head2 $self->filter($value)
+=head2 filter
 
 =cut
 
 sub filter {
     my ( $self, $value ) = @_;
-    my $allowed  = $self->allow || [];
+    my $allowed = $self->allow || [];
     my $scrubber = HTML::Scrubber->new( allow => $allowed );
     return $scrubber->scrub($value);
 }

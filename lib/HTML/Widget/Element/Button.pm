@@ -32,6 +32,8 @@ Button Element.
 The value of this Button element. Is also used by the browser as the 
 button label.
 
+L</label> is an alias for L</value>.
+
 =head2 content
 
 If set, the element will use a C<button> tag rather than an C<input> 
@@ -46,35 +48,38 @@ Only used if L</content> is set.
 
 Defaults to C<button>. Also valid is C<submit> and C<reset>.
 
-=head2 $self->render( $widget, $value )
+=head2 render
 
 =head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
-    $value ||= $self->value;
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
     my $i;
-    if (defined $self->content && length $self->content) {
+    if ( defined $self->content && length $self->content ) {
         my $type = $self->type() if defined $self->type;
         $type = 'button' if not defined $type;
-        
+
         $i = $self->mk_tag( $w, 'button', { type => $type, value => $value } );
-        
+
         $i->push_content(
-            HTML::Element->new( '~literal', text => $self->content )
-        );
+            HTML::Element->new( '~literal', text => $self->content ) );
     }
     else {
-	   $i = $self->mk_input( $w, { type => 'button', value => $value } );
+        $i = $self->mk_input( $w, { type => 'button', value => $value } );
     }
-    
+
     return $self->container( { element => $i } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

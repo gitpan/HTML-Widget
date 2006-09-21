@@ -25,11 +25,15 @@ Length Constraint.
 
 =head1 METHODS
 
-=head2 $self->maximum($max)
+=head2 maximum
 
-=head2 $self->minimum($min)
+Arguments: $max_value
 
-=head2 $self->validate($value)
+=head2 minimum
+
+Arguments: $min_value
+
+=head2 validate
 
 =cut
 
@@ -38,7 +42,7 @@ sub validate {
 
     # Return valid on an empty value
     return 1 unless defined($value);
-    return 1 if ($value eq '');
+    return 1 if ( $value eq '' );
 
     my $minimum = $self->minimum;
     my $maximum = $self->maximum;

@@ -18,7 +18,7 @@ One or more of the named fields must be present.
 
 =head1 METHODS
 
-=head2 $self->process( $widget, $params )
+=head2 process
 
 =cut
 
@@ -38,11 +38,11 @@ sub process {
     return $present ? [] : $results;
 }
 
-=head2 $self->default_message
+=head2 default_message
 
 =cut
 
-sub default_message { 'Alternative Missing' }
+sub default_message {'Alternative Missing'}
 
 =head1 AUTHOR
 

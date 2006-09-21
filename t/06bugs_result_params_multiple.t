@@ -1,7 +1,9 @@
-use Test::More tests => 3;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 2;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -11,15 +13,17 @@ $w1->element( 'Textfield', 'foo' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => ['one', 'two'],
-    });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => [ 'one', 'two' ], } );
 
     my $result = $w1->process($query);
 
-    ok( $result->valid( 'foo' ) );
-    
+    ok( $result->valid('foo'), 'foo valid' );
+
     my $params = $result->params;
-    
-    is_deeply( $params, {foo => ['one','two']} );
+
+    is_deeply(
+        $params,
+        { foo => [ 'one', 'two' ] },
+        '$result->params is_deeply'
+    );
 }

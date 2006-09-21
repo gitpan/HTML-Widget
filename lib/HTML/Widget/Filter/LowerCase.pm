@@ -18,7 +18,7 @@ Lower Case Filter.
 
 =head1 METHODS
 
-=head2 $self->filter($value)
+=head2 filter
 
 =cut
 

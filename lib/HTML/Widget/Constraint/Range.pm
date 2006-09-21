@@ -4,6 +4,8 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Constraint';
 
+use Scalar::Util qw(looks_like_number);
+
 __PACKAGE__->mk_accessors(qw/minimum maximum/);
 
 *min = \&minimum;
@@ -25,23 +27,33 @@ Range Constraint.
 
 =head1 METHODS
 
-=head2 $self->maximum($max)
+=head2 maximum
 
-=head2 $self->minimum($min)
+Arguments: $max_value
 
-=head2 $self->validate($value)
+=head2 minimum
+
+Arguments: $min_value
+
+=head2 validate
 
 =cut
 
 sub validate {
     my ( $self, $value ) = @_;
+
+    return 1 if !defined $value || $value eq '';
+
     my $minimum = $self->minimum;
     my $maximum = $self->maximum;
     my $failed  = 0;
-    if ($minimum) {
+
+    $failed++ if !looks_like_number($value);
+
+    if ( !$failed && $minimum ) {
         $failed++ unless ( $value >= $minimum );
     }
-    if ($maximum) {
+    if ( !$failed && $maximum ) {
         $failed++ unless ( $value <= $maximum );
     }
     return !$failed;

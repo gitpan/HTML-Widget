@@ -1,13 +1,15 @@
-use Test::More tests => 2;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 1;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
-$w->empty_errors( 1 );
+$w->empty_errors(1);
 
 $w->element( 'Textfield', 'foo' );
 
@@ -15,7 +17,7 @@ $w->constraint( 'All', 'foo' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'yada' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yada' } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );

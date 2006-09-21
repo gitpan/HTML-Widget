@@ -34,18 +34,25 @@ button label.
 
 If not set, the browser will usually display the label as "Reset".
 
-=head2 $self->containerize( $widget, $value )
+L</label> is an alias for L</value>.
+
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
-    $value ||= $self->value;
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
+
     my $i = $self->mk_input( $w, { type => 'reset', value => $value } );
 
     return $self->container( { element => $i } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

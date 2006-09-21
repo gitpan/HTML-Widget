@@ -26,11 +26,23 @@ Error.
 
 =head1 METHODS
 
-=head2 $self->name($name)
+=head2 name
 
-=head2 $self->message($message)
+Arguments: $name
 
-=head2 $self->type($type)
+Return Value: $name
+
+=head2 message
+
+Arguments: $message
+
+Return Value: $message
+
+=head2 type
+
+Arguments: $type
+
+Return Value: $type
 
 =head1 AUTHOR
 

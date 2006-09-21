@@ -29,20 +29,26 @@ C<$widget->enctype('multipart/form-data')> for you.
 
 =head1 METHODS
 
-=head2 $self->prepare( $widget, $value )
+=head2 accept
+
+Arguments: $type
+
+A comma-separated list of media types, as per C<RFC2045>.
+
+=head2 prepare
 
 =cut
 
 sub prepare {
     my ( $self, $w ) = @_;
-    
+
     # force multipart
     $w->enctype('multipart/form-data');
-    
+
     return;
 }
 
-=head2 $self->containerize( $widget, $value, $errors )
+=head2 containerize
 
 =cut
 
@@ -57,6 +63,10 @@ sub containerize {
 
     return $self->container( { element => $i, error => $e, label => $l } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

@@ -1,14 +1,16 @@
-use Test::More tests => 4;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 3;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
 $w->element( 'Upload', 'foo' )->label('Foo')->accept('text/plain')
-  ->maxlength(1000)->size(30);
+    ->maxlength(1000)->size(30);
 $w->element( 'Upload', 'bar' );
 
 $w->constraint( 'Integer', 'foo' );
@@ -17,10 +19,10 @@ $w->constraint( 'Integer', 'bar' );
 # Without query
 {
     my $f = $w->process;
-    
+
     ok( $w->enctype() eq 'multipart/form-data',
         'enctype automatically set to multipart/form-data' );
-    
+
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form enctype="multipart/form-data" id="widget" method="post"><fieldset><label for="widget_foo" id="widget_foo_label">Foo<input accept="text/plain" class="upload" id="widget_foo" maxlength="1000" name="foo" size="30" type="file" /></label><input class="upload" id="widget_bar" name="bar" type="file" /></fieldset></form>
 EOF
@@ -28,9 +30,10 @@ EOF
 
 # With mocked basic query
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => '23',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => '23',
+        } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );

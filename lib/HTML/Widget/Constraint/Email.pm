@@ -19,7 +19,7 @@ Email Constraint.
 
 =head1 METHODS
 
-=head2 $self->validate($value)
+=head2 validate
 
 =cut
 

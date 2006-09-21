@@ -25,9 +25,11 @@ L<HTML::Widget::Constraint::All|All constraint>.
 
 =head1 METHODS
 
-=head2 $self->regex($regex)
+=head2 regex
 
-=head2 $self->validate($value)
+Arguments: qr/ regex /
+
+=head2 validate
 
 =cut
 
@@ -35,8 +37,8 @@ sub validate {
     my ( $self, $value ) = @_;
     my $regex = $self->regex || qr/.*/;
     return 0 if ( defined $value
-                && $value ne ''
-                && $value !~ $regex );
+        && $value ne ''
+        && $value !~ $regex );
     return 1;
 }
 

@@ -25,15 +25,17 @@ Callback Constraint.
 
 =head1 METHODS
 
-=head2 $self->cb( sub { $value=shift; } )
+=head2 callback
 
-=head2 $self->callback( sub { $value=shift; } )
+=head2 cb
 
-define the callback to be used for validation. cb is an alias
-to callback.
+Arguments: \&callback
 
+Define the callback to be used for validation.
 
-=head2 $self->validate($value)
+L</cb> is an alias for L</callback>.
+
+=head2 validate
 
 perform the actual validation.
 
@@ -41,7 +43,7 @@ perform the actual validation.
 
 sub validate {
     my ( $self, $value ) = @_;
-    my $callback = $self->callback || sub { 1 };
+    my $callback = $self->callback || sub {1};
     return $callback->($value);
 }
 

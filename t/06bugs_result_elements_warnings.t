@@ -1,8 +1,10 @@
-use Test::More tests => 2 + 1;
+use strict;
+use warnings;
+
+use Test::More tests => 1 + 1;    # +1 is for Test::NoWarnings
 use Test::NoWarnings;
 
-use_ok('HTML::Widget');
-
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -11,11 +13,11 @@ use HTMLWidget::TestLib;
 
     $w->element( 'Textfield', 'foo' );
 
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'yada' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yada' } );
 
     my $result = $w->process($query);
 
     my @elements = $result->elements;
-    
-    ok( @elements == 1 );
+
+    ok( @elements == 1, '@elements contains 1 value' );
 }

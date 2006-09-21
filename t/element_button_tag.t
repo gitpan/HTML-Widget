@@ -1,7 +1,9 @@
-use Test::More tests => 5;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 4;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -23,15 +25,16 @@ EOF
 
 # With mocked basic query
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => '23',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => '23',
+        } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
 <form id="widget" method="post"><fieldset><button class="button" id="widget_foo" name="foo" type="button" value="yada"><b>foo</b></button><button class="button" id="widget_bar" name="bar" type="submit" value="23"><img href="bar.png"></button></fieldset></form>
 EOF
 
-    ok( ! $f->valid('foo') );
+    ok( !$f->valid('foo') );
     ok( $f->valid('bar') );
 }

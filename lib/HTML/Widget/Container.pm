@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw/element label error javascript passive/);
+__PACKAGE__->mk_accessors(qw/element label error javascript passive name/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
 
@@ -40,9 +40,9 @@ Container.
 
 =head1 METHODS
 
-=head2 $self->as_xml
+=head2 as_xml
 
-Returns xml.
+Return Value: $xml
 
 =cut
 
@@ -55,42 +55,48 @@ sub as_xml {
     return $xml;
 }
 
-=head2 $self->_build_element($self->element)
+=head2 _build_element
+
+Arguments: $element
 
 Convert $element to L<HTML::Element> object. Accepts arrayref.
 
-Most of the time if you wish to change the rendering behavoiur of 
+Most of the time if you wish to change the rendering behaviour of 
 HTML::Widget, you specify L<HTML::Widget::Element/container_class> 
 to a custom class which just overrides this function.
 
 =cut
 
 sub _build_element {
-	my ($self, $element) = @_;
+    my ( $self, $element ) = @_;
 
-	return () unless $element;
-	if (ref $element eq 'ARRAY') {
-		return map { $self->_build_element($_) } @{$element};
-	}
-	my $e = $element->clone;
-	my $class = $e->attr('class') || '';
-	if ($self->error && $e->tag eq 'input') {
-	   $e = HTML::Element->new('span', class => 'fields_with_errors')
-	                     ->push_content($e)
-	}
+    return () unless $element;
+    if ( ref $element eq 'ARRAY' ) {
+        return map { $self->_build_element($_) } @{$element};
+    }
+    my $e = $element->clone;
+    my $class = $e->attr('class') || '';
+    if ( $self->error && $e->tag eq 'input' ) {
+        $e = HTML::Element->new( 'span', class => 'fields_with_errors' )
+            ->push_content($e);
+    }
 
-	if ($self->label) {
-		my $l = $self->label->clone;
-		# Do we prepend or append input to label?
-		$e = ($class eq 'checkbox' or $class eq 'radio')
-		   ? $l->unshift_content($e)
-		   : $l->push_content($e);
-	}
+    if ( $self->label ) {
+        my $l = $self->label->clone;
 
-	return $e ? ($e) : ();	
+        # Do we prepend or append input to label?
+        $e =
+            ( $class eq 'checkbox' or $class eq 'radio' )
+            ? $l->unshift_content($e)
+            : $l->push_content($e);
+    }
+
+    return $e ? ($e) : ();
 }
 
-=head2 $self->as_list
+=head2 as_list
+
+Return Value: @elements
 
 Returns a list of L<HTML::Element> objects.
 
@@ -99,34 +105,47 @@ Returns a list of L<HTML::Element> objects.
 sub as_list {
     my $self = shift;
     my @list;
-	push @list, $self->_build_element($self->element);
-	push @list, $self->javascript_element if $self->javascript;
-    push @list, $self->error              if $self->error;
+    push @list, $self->_build_element( $self->element );
+    push @list, $self->javascript_element if $self->javascript;
+    push @list, $self->error if $self->error;
     return @list;
 }
 
-=head2 $self->element($element)
+=head2 element
 
-=head2 $self->field_xml
+=head2 field
 
-=head2 $self->element_xml
+Arguments: $element
 
-Returns xml for element.
+L</field> is an alias for L</element>.
+
+=head2 element_xml
+
+=head2 field_xml
+
+Return Value: $xml
+
+L</field_xml> is an alias for L</element_xml>.
 
 =cut
 
 sub element_xml {
     my $self = shift;
-	my @e = $self->_build_element;
-	return join('', map( { $_->as_XML } $self->_build_element($self->element)) )
-	                || '';
+    my @e    = $self->_build_element;
+    return join( '',
+        map( { $_->as_XML } $self->_build_element( $self->element ) ) )
+        || '';
 }
 
-=head2 $self->error($error)
+=head2 error
 
-=head2 $self->error_xml
+Arguments: $error
 
-Returns xml for error.
+Return Value: $error
+
+=head2 error_xml
+
+Return Value: $xml
 
 =cut
 
@@ -135,9 +154,19 @@ sub error_xml {
     return $self->error ? $self->error->as_XML : '';
 }
 
-=head2 $self->javascript
+=head2 javascript
 
-=head2 $self->javascript_element
+=head2 js
+
+Arguments: $javascript
+
+Return Value: $javascript
+
+L</js> is an alias for L</javascript>.
+
+=head2 javascript_element
+
+Return Value: $javascript_element
 
 Returns javascript in a script L<HTML::Element>.
 
@@ -152,11 +181,15 @@ sub javascript_element {
     return $script;
 }
 
-=head2 $self->js_xml
+=head2 javascript_xml
 
-=head2 $self->javascript_xml
+=head2 js_xml
+
+Return Value: $javascript_xml
 
 Returns javascript in a script block.
+
+L</js_xml> is an alias for L</javascript_xml>.
 
 =cut
 

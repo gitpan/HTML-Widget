@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package HTML::Widget::Constraint::In;
 use base 'HTML::Widget::Constraint';
 
@@ -27,7 +25,7 @@ HTML::Widget::Constraint::In - Check that a value is one of a current set.
 sub new {
     my $self = shift->SUPER::new(@_);
 
-    $self->_in_hash({});
+    $self->_in_hash( {} );
 
     $self;
 }
@@ -38,28 +36,26 @@ sub new {
 
 sub validate {
     my ( $self, $value ) = @_;
-    
-    return 1 if keys %{ $self->_in_hash } == 0;
-    
+
     exists $self->_in_hash->{$value};
 }
 
 =head2 in
 
-A list of valid values for that element.
+Arguments: @values
 
-If the list is empty, the constraint will always pass.
+A list of valid values for that element.
 
 =cut
 
 sub in {
     my ( $self, @values ) = @_;
 
-    if ( @values ) {
+    if (@values) {
         $self->_in_hash( { map { $_ => undef } @values } );
-        $self->_in( @values );
-    };
-    
+        $self->_in(@values);
+    }
+
     return $self->_in();
 }
 

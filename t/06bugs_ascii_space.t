@@ -1,7 +1,9 @@
-use Test::More tests => 5;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 3;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -11,16 +13,13 @@ $w->element( 'Textfield', 'foo' );
 
 $w->constraint( 'ASCII', 'foo' );
 
-my $query = HTMLWidget::TestLib->mock_query({ foo => ' ' });
+my $query = HTMLWidget::TestLib->mock_query( { foo => ' ' } );
 
-my $f = $w->process( $query );
-is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value=" " /></fieldset></form>
-EOF
+my $f = $w->process($query);
 
-ok( ! $f->has_errors );
+ok( !$f->has_errors, 'no errors' );
 
-ok( $f->valid('foo') );
+ok( $f->valid('foo'), 'foo valid' );
 
-ok( $f->param('foo') eq ' ' );
+is( $f->param('foo'), ' ', 'value is space character' );
 

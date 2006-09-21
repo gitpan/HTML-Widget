@@ -7,8 +7,7 @@ use HTML::Element;
 use HTML::Widget::Container;
 use NEXT;
 
-
-__PACKAGE__->mk_classaccessor(container_class => 'HTML::Widget::Container');
+__PACKAGE__->mk_classaccessor( container_class => 'HTML::Widget::Container' );
 
 __PACKAGE__->mk_accessors(qw/name passive/);
 __PACKAGE__->mk_attr_accessors(qw/class/);
@@ -20,7 +19,7 @@ HTML::Widget::Element - Element Base Class
 =head1 SYNOPSIS
 
     my $e = $widget->element( $type, $name );
-    $e->attributes( { class => 'foo' } );
+    $e->attributes->{class} = 'foo';
     $e->name('bar');
     $e->class('foo');
 
@@ -36,7 +35,47 @@ Element Base Class.
 
 sub new { shift->NEXT::new(@_)->attributes( {} ) }
 
-=head2 $self->container($attributes)
+=head2 attributes
+
+=head2 attrs
+
+Arguments: \%attributes
+
+Return Value: \%attributes
+
+The recommended way of setting attributes is to assign directly to a 
+hash-ref key, rather than passing an entire hash-ref, which would overwrite 
+any existing attributes.
+
+    # recommended - preserves existing key/value's
+    $e->attributes->{key} = $value;
+    
+    # NOT recommended - deletes existing key/value's
+    $e->attributes( { key => $value } );
+
+However, when a value is set in this recommended way, the object is not 
+returned, so cannot be used for further chained method calls.
+
+    $w->element( 'Textfield', 'foo' )
+        ->size( 10 )
+        ->attributes->{'disabled'} = 'disabled';
+    # we cannot chain any further method calls after this
+
+Therefore, to set multiple attributes, it is recommended you store the 
+appropriate object, and call L</attributes> multiple times.
+
+    my $e = $w->element( 'Textfield', 'foo' )->size( 10 );
+    
+    $e->attributes->{'disabled'} = 'disabled';
+    $e->attributes->{'id'}       = 'login';
+
+L</attrs> is an alias for L</attributes>.
+
+=head2 container
+
+Arguments: \%attributes
+
+Return Value: $container
 
 Creates a new $container_class. Defaults to L<HTML::Widget::Container>.
 
@@ -44,22 +83,19 @@ Creates a new $container_class. Defaults to L<HTML::Widget::Container>.
 
 sub container {
     my ( $self, $attributes ) = @_;
-	my $class = $self->container_class || 'HTML::Widget::Container';
-    eval "require $class" or die "Unable to load element container class $class: $@";
-    return $class->new({passive => $self->passive, %$attributes});
+    my $class = $self->container_class || 'HTML::Widget::Container';
+    my $file = $class . ".pm";
+    $file =~ s{::}{/}g;
+    eval { require $file };
+    die "Unable to load element container class $class: $@" if $@;
+    return $class->new( { passive => $self->passive, %$attributes } );
 }
 
-sub container_class {
-	my ($self) = shift;
+=head2 id
 
-	if (not $_[0] and @_ >= 1) {
-		delete $self->{container_class};
-	}
+Arguments: $widget
 
-	return $self->_container_class_accessor(@_);
-}
-
-=head2 $self->id($widget)
+Return Value: $id
 
 Creates a element id.
 
@@ -67,10 +103,12 @@ Creates a element id.
 
 sub id {
     my ( $self, $w, $id ) = @_;
-    return $w->name  . '_' . ( $id || $self->name );
+    return $w->name . '_' . ( $id || $self->name );
 }
 
-=head2 $self->init($widget)
+=head2 init
+
+Arguments: $widget
 
 Called once when process() gets called for the first time.
 
@@ -78,7 +116,11 @@ Called once when process() gets called for the first time.
 
 sub init { }
 
-=head2 $self->mk_error( $w, $errors )
+=head2 mk_error
+
+Arguments: $widget, \@errors
+
+Return Value: $error
 
 Creates a new L<HTML::Widget::Error>.
 
@@ -87,11 +129,16 @@ Creates a new L<HTML::Widget::Error>.
 sub mk_error {
     my ( $self, $w, $errors ) = @_;
 
-    return if ( !$w->{empty_errors} && (!defined($errors) || !scalar(@$errors)) );
+    return
+        if ( !$w->{empty_errors}
+        && ( !defined($errors) || !scalar(@$errors) ) );
     my $id        = $self->attributes->{id} || $self->id($w);
     my $cont_id   = $id . '_errors';
-    my $container =
-      HTML::Element->new( 'span', id => $cont_id, class => 'error_messages' );
+    my $container = HTML::Element->new(
+        'span',
+        id    => $cont_id,
+        class => 'error_messages'
+    );
     for my $error (@$errors) {
         my $e_id    = $id . '_error_' . lc( $error->{type} );
         my $e_class = lc( $error->{type} . '_errors' );
@@ -102,7 +149,11 @@ sub mk_error {
     return $container;
 }
 
-=head2 $self->mk_input( $w, $attrs, $errors )
+=head2 mk_input
+
+Arguments: $widget, \%attributes, \@errors
+
+Return Value: $input_tag
 
 Creates a new input tag.
 
@@ -110,11 +161,15 @@ Creates a new input tag.
 
 sub mk_input {
     my ( $self, $w, $attrs, $errors ) = @_;
-    
+
     return $self->mk_tag( $w, 'input', $attrs, $errors );
 }
 
-=head2 $self->mk_tag( $w, $tagtype, $attrs, $errors )
+=head2 mk_tag
+
+Arguments: $widget, $tagtype, \%attributes, \@errors
+
+Return Value: $element_tag
 
 Creates a new tag.
 
@@ -122,13 +177,13 @@ Creates a new tag.
 
 sub mk_tag {
     my ( $self, $w, $tag, $attrs, $errors ) = @_;
-    my $e    = HTML::Element->new( $tag );
+    my $e    = HTML::Element->new($tag);
     my $id   = $self->attributes->{id} || $self->id($w);
     my $type = ref $self;
     $type =~ s/^HTML::Widget::Element:://;
     $type =~ s/::/_/g;
     $self->attributes->{class} ||= lc($type);
-    $e->attr( id => $id ) unless $self->attributes->{id};
+    $e->attr( id => $id ) unless $self->attributes->{id} || $w->{explicit_ids};
     $e->attr( name => $self->name );
 
     for my $key ( keys %$attrs ) {
@@ -136,12 +191,16 @@ sub mk_tag {
         $e->attr( $key, $value ) if defined $value;
     }
     $e->attr( $_ => ${ $self->attributes }{$_} )
-      for ( keys %{ $self->attributes } );
+        for ( keys %{ $self->attributes } );
 
     return $e;
 }
 
-=head2 $self->mk_label( $w, $name )
+=head2 mk_label
+
+Arguments: $widget, $name, $comment, \@errors
+
+Return Value: $label_tag
 
 Creates a new label tag.
 
@@ -149,7 +208,7 @@ Creates a new label tag.
 
 sub mk_label {
     my ( $self, $w, $name, $comment, $errors ) = @_;
-    return undef unless defined $name;
+    return unless defined $name;
     my $for = $self->attributes->{id} || $self->id($w);
     my $id  = $for . '_label';
     my $e   = HTML::Element->new( 'label', for => $for, id => $id );
@@ -169,15 +228,25 @@ sub mk_label {
     return $e;
 }
 
-=head2 name($name)
+=head2 name
+
+Arguments: $name
+
+Return Value: $name
 
 Contains the element name.
 
-=head2 passive($passive)
+=head2 passive
+
+Arguments: $bool
+
+Return Value: $bool
 
 Defines if element gets automatically rendered.
 
-=head2 $self->prepare($widget)
+=head2 prepare
+
+Arguments: $widget
 
 Called whenever $widget->process() gets called, before $element->process().
 
@@ -185,7 +254,11 @@ Called whenever $widget->process() gets called, before $element->process().
 
 sub prepare { }
 
-=head2 $self->process($params, $uploads)
+=head2 process
+
+Arguments: \%params, \@uploads
+
+Return Value: \@errors
 
 Called whenever $widget->process()
 
@@ -195,7 +268,11 @@ Returns an arrayref of L<HTML::Widget::Error> objects.
 
 sub process { }
 
-=head2 $self->containerize
+=head2 containerize
+
+Arguments: $widget, $value, \@errors
+
+Return Value: $container_tag
 
 Containerize the element, label and error for later rendering. Uses HTML::Widget::Container by default, but this can be over-ridden on a class or instance basis via L<container_class>.
 
@@ -203,7 +280,11 @@ Containerize the element, label and error for later rendering. Uses HTML::Widget
 
 sub containerize { }
 
-=head2 $self->container_class($class)
+=head2 container_class
+
+Arguments: $class
+
+Return Value: $class
 
 Contains the class to use for contain the element which then get rendered. Defaults to L<HTML::Widget::Container>. C<container_class> can be set at a class or instance level:
 
@@ -215,6 +296,29 @@ Contains the class to use for contain the element which then get rendered. Defau
    
   $w->element('Textfield')->name('foo')->container_class->('My::Other::Container'); 
   # This element only will use My::Other::Container to render
+
+=cut
+
+sub container_class {
+    my ($self) = shift;
+
+    if ( not $_[0] and @_ >= 1 ) {
+        delete $self->{container_class};
+    }
+
+    return $self->_container_class_accessor(@_);
+}
+
+=head2 find_elements
+
+Return Value: \@elements
+
+For non-block-container elements, simply returns a one-element list
+containing this element.
+
+=cut
+
+sub find_elements { return (shift); }
 
 =head1 AUTHOR
 

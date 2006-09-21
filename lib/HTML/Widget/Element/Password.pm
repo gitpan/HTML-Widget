@@ -26,25 +26,29 @@ Password Element.
 
 =head1 METHODS
 
-=head2 $self->containerize( $widget, $value, $errors )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value, $errors ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
     $value = undef unless $self->fill;
-    $value ||= $self->value;
 
     my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
-    my $i =
-      $self->mk_input( $w, { type => 'password', value => $value }, $errors );
+    my $i = $self->mk_input( $w, { type => 'password', value => $value },
+        $errors );
     my $e = $self->mk_error( $w, $errors );
 
     return $self->container( { element => $i, error => $e, label => $l } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

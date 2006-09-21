@@ -33,12 +33,12 @@ sub new {
     shift->NEXT::new(@_)->value(1);
 }
 
-=head2 $self->containerize( $widget, $value, $errors )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value, $errors ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
@@ -46,30 +46,18 @@ sub containerize {
 
     # Search for multiple checkboxes with the same name
     my $multi = 0;
-    my @elements;
-    push @elements, [ $w, $w->{_elements} ] if $w->{_elements};
-    if ( $w->{_embedded} ) {
-        for my $embedded ( @{ $w->{_embedded} } ) {
-            push @elements, [ $embedded, $embedded->{_elements} ]
-              if $embedded->{_elements};
-        }
-    }
-    for my $e (@elements) {
-        my $widget   = $e->[0];
-        my $elements = $e->[1];
-        for my $element (@$elements) {
-            next if $element eq $self;
-            if ( $element->isa('HTML::Widget::Element::Checkbox') ) {
-                if ( $element->name eq $name ) {
-                    $multi++;
-                }
-            }
+    my @elements = $w->find_elements( name => $name );
+
+    for my $element (@elements) {
+        next if $element eq $self;
+        if ( $element->isa('HTML::Widget::Element::Checkbox') ) {
+            $multi++;
         }
     }
 
     # Generate unique id
     if ($multi) {
-        $w->{_shash}          ||= {};
+        $w->{_stash}             ||= {};
         $w->{_stash}->{checkbox} ||= {};
         my $num = ++$w->{_stash}->{checkbox}->{$name};
         my $id = $self->id( $w, "$name\_$num" );
@@ -77,18 +65,24 @@ sub containerize {
         $self->attributes->{id} ||= $id;
     }
 
-    my $checked = ( defined $value && $value eq $self->value ) ? 'checked' : undef;
-    $checked = 'checked' if ( !defined $value && $self->checked );
-    $value   = $self->value;
+    my $checked
+        = ( defined $value && $value eq $self->value ) ? 'checked' : undef;
+    if ( !defined $value && !$args->{submitted} && $self->checked ) {
+        $checked = 'checked';
+    }
+    $value = $self->value;
 
     my $l = $self->mk_label( $w, $self->label, $self->comment, $errors );
-    my $i =
-      $self->mk_input( $w,
+    my $i = $self->mk_input( $w,
         { checked => $checked, type => 'checkbox', value => $value }, $errors );
     my $e = $self->mk_error( $w, $errors );
 
     return $self->container( { element => $i, error => $e, label => $l } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

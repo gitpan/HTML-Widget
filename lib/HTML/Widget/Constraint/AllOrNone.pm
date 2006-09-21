@@ -18,7 +18,7 @@ AllOrNone means that if one is filled out, all of them have to be.
 
 =head1 METHODS
 
-=head2 $self->process( $widget, $params )
+=head2 process
 
 =cut
 
@@ -27,11 +27,14 @@ sub process {
     my $results = [];
     my $one;
     for my $name ( @{ $self->names } ) {
-        if( $self->not ? (defined $params->{$name} && length $params->{$name}) : (!defined $params->{$name} || !length $params->{$name}) ) {
-           push @$results,
-             HTML::Widget::Error->new(
-               { name => $name, message => $self->mk_message } );
-        } else {
+        if ($self->not
+            ? ( defined $params->{$name} && length $params->{$name} )
+            : ( !defined $params->{$name} || !length $params->{$name} ) )
+        {
+            push @$results, HTML::Widget::Error->new(
+                { name => $name, message => $self->mk_message } );
+        }
+        else {
             $one++;
         }
     }

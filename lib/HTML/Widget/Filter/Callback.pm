@@ -26,12 +26,15 @@ Callback Filter.
 
 =head1 METHODS
 
-=head1 $self->callback( sub { $value=shift;} );
+=head1 callback
 
-define the callback to e used for filter. cb is an alias
-to callback.
+Argument: \&callback
 
-=head2 $self->filter($value)
+Define the callback to be used for filter.
+
+L</cb> is an alias for L</callback>.
+
+=head2 filter
 
 =cut
 

@@ -21,21 +21,21 @@ Requires L<Scalar::Util>.
 
 =head1 METHODS
 
-=head2 $self->validate($value)
+=head2 validate
 
 =cut
 
 sub validate {
     my ( $self, $value ) = @_;
-    
-    return 1 if ! defined $value || $value eq '';
-    
-    return looks_like_number( $value );
+
+    return 1 if !defined $value || $value eq '';
+
+    return looks_like_number($value);
 }
 
 =head1 AUTHOR
 
-Carl Franks <cfranks@cpan.org>
+Carl Franks C<cfranks@cpan.org>
 
 =head1 LICENSE
 

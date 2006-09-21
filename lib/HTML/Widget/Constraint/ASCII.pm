@@ -18,11 +18,13 @@ ASCII Constraint.
 
 =head1 METHODS
 
-=head2 $self->regex
+=head2 regex
+
+Provides a regex to validate ASCII text.
 
 =cut
 
-sub regex { qr/^[\x20-\x7E]*$/ }
+sub regex {qr/^[\x20-\x7E]*$/}
 
 =head1 AUTHOR
 

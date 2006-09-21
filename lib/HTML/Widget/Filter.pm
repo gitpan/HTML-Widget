@@ -21,7 +21,11 @@ Filter Base Class.
 
 =head1 METHODS
 
-=head2 $self->filter($value)
+=head2 filter
+
+Arguments: $value
+
+Return Value: $filtered_value
 
 FIlter given value.
 
@@ -29,7 +33,9 @@ FIlter given value.
 
 sub filter { return $_[0] }
 
-=head2 $self->init($widget)
+=head2 init
+
+Arguments: $widget
 
 Called once when process() gets called for the first time.
 
@@ -37,11 +43,17 @@ Called once when process() gets called for the first time.
 
 sub init { }
 
-=head2 $self->names(@names)
+=head2 names
+
+Arguments: @names
+
+Return Value: @names
 
 Contains names of params to filter.
 
-=head2 $self->prepare($widget)
+=head2 prepare
+
+Arguments: $widget
 
 Called whenever process() gets called.
 
@@ -49,7 +61,9 @@ Called whenever process() gets called.
 
 sub prepare { }
 
-=head2 $self->process($params, $uploads)
+=head2 process
+
+Arguments: \%params, \@uploads
 
 =cut
 

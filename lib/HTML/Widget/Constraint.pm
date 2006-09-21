@@ -26,15 +26,21 @@ Constraint Base Class.
 
 =head1 METHODS
 
-=head2 $self->default_message
+=head2 default_message
+
+Arguments: $message
+
+Return Value: $message
 
 Default error message for failing constraints.
 
 =cut
 
-sub default_message { 'Invalid Input' }
+sub default_message {'Invalid Input'}
 
-=head2 $self->init($widget)
+=head2 init
+
+Arguments: $widget
 
 Called once when process() gets called for the first time.
 
@@ -42,7 +48,9 @@ Called once when process() gets called for the first time.
 
 sub init { }
 
-=head2 $self->javascript($id)
+=head2 javascript
+
+Arguments: $id
 
 Should return JavaScript for client side validation and the like.
 
@@ -50,13 +58,17 @@ Should return JavaScript for client side validation and the like.
 
 sub javascript { }
 
-=head2 $self->msg($message)
+=head2 msg
 
-=head2 $self->message($message)
+=head2 message
+
+Arguments: $message
 
 Contains the validation error message.
 
-=head2 $self->mk_message
+=head2 mk_message
+
+Arguments: $message
 
 Returns a validation error message.
 
@@ -64,15 +76,25 @@ Returns a validation error message.
 
 sub mk_message { return $_[0]->message || $_[0]->default_message }
 
-=head2 $self->names(@names)
+=head2 names
+
+Arguments: @names
+
+Return Value: @names
 
 Contains names of params to test.
 
-=head2 $self->not($not)
+=head2 not
+
+Arguments: $bool
+
+Return Value: $bool
 
 Negate constraint.
 
-=head2 $self->prepare($widget)
+=head2 prepare
+
+Arguments: $widget
 
 Called every time process() gets called.
 
@@ -80,7 +102,11 @@ Called every time process() gets called.
 
 sub prepare { }
 
-=head2 $self->process( $widget, $params, $uploads )
+=head2 process
+
+Arguments: $widget, $params, \@uploads
+
+Return Value: \@errors
 
 Validates params and returns a arrayref containing L<HTML::Widget::Error>
 objects representing failed constraints.
@@ -98,16 +124,18 @@ sub process {
         for my $value (@values) {
             my $result = $self->validate($value);
             push @$results,
-              HTML::Widget::Error->new(
+                HTML::Widget::Error->new(
                 { name => $name, message => $self->mk_message } )
-              if $self->not ? $result : !$result;
+                if $self->not ? $result : !$result;
         }
     }
 
     return $results;
 }
 
-=head2 $self->process_js($id)
+=head2 process_js
+
+Arguments: $id
 
 Returns a hashref containing JavaScripts for client side validation and
 the like.
@@ -123,13 +151,17 @@ sub process_js {
     return \%js;
 }
 
-=head2 $self->validate($value)
+=head2 validate
+
+Arguments: $value
+
+Return Value: $bool
 
 Validates a value and returns 1 or 0.
 
 =cut
 
-sub validate { 1 }
+sub validate {1}
 
 =head1 AUTHOR
 

@@ -8,20 +8,23 @@ use HTML::Widget::Error;
 use HTML::Element;
 use Storable 'dclone';
 
-__PACKAGE__->mk_accessors(qw/attributes container legend subcontainer strict submitted element_container_class/);
+__PACKAGE__->mk_accessors(
+    qw/attributes container subcontainer strict submitted
+        element_container_class implicit_subcontainer/
+);
 __PACKAGE__->mk_attr_accessors(qw/action enctype id method empty_errors/);
 
 use overload '""' => sub { return shift->as_xml }, fallback => 1;
 
-*attrs       = \&attributes;
-*name        = \&id;
-*error       = \&errors;
-*has_error   = \&has_errors;
-*have_errors = \&has_errors;
-*element     = \&elements;
-*parameters  = \&params;
-*tag         = \&container;
-*subtag      = \&subcontainer;
+*attrs        = \&attributes;
+*name         = \&id;
+*error        = \&errors;
+*has_error    = \&has_errors;
+*have_errors  = \&has_errors;
+*element      = \&elements;
+*parameters   = \&params;
+*tag          = \&container;
+*subtag       = \&subcontainer;
 *is_submitted = \&submitted;
 
 =head1 NAME
@@ -38,11 +41,17 @@ Result Class.
 
 =head1 METHODS
 
-=head2 $self->action($action)
+=head2 action
+
+Arguments: $action
+
+Return Value: $action
 
 Contains the form action.
 
-=head2 $self->as_xml
+=head2 as_xml
+
+Return Value: $xml
 
 Returns xml.
 
@@ -53,60 +62,46 @@ sub as_xml {
 
     my $element_container_class = $self->{element_container_class};
 
-    my $c = HTML::Element->new( $self->container, id => $self->name );
+    my $c = HTML::Element->new( $self->container );
     $self->attributes( {} ) unless $self->attributes;
     $c->attr( $_ => ${ $self->attributes }{$_} )
-      for ( keys %{ $self->attributes } );
+        for ( keys %{ $self->attributes } );
 
     my $params = dclone $self->{_params};
 
-    if ( @{ $self->{_embedded} } ) {
-        for my $embedded ( @{ $self->{_embedded} } ) {
-            next unless $embedded->{_elements};
-            my $sc =
-              HTML::Element->new( $self->subcontainer, id => $embedded->name );
-            if ( my $legend = $embedded->legend ) {
-                my $l =
-                  HTML::Element->new( 'legend',
-                    id => $embedded->name . "\_legend" );
-                $l->push_content($legend);
-                $sc->push_content($l);
-            }
-            $element_container_class = $embedded->element_container_class if $embedded->element_container_class;
-            local $self->{attributes}{id} = $embedded->id;
-            for my $element ( $self->_get_elements( $embedded->{_elements},
-              $params, $element_container_class) ) {
-                $sc->push_content($element->as_list) unless $element->passive;  
-            }
-            $c->push_content($sc);
-        }
-    } else {
-        my $sc = HTML::Element->new( $self->subcontainer );
-        if ( my $legend = $self->legend ) {
-            my $id = $self->name;
-            my $l = HTML::Element->new( 'legend', id => "$id\_legend" );
-            $l->push_content($legend);
-            $sc->push_content($l);
-        }
-        for my $element ( $self->_get_elements($self->{_elements}, $params, $element_container_class ) ) {
-            $sc->push_content($element->as_list) unless $element->passive;
-        }
-        $c->push_content($sc);
+    for my $element (
+        $self->_get_elements(
+            $self->{_elements}, $params, $element_container_class
+        ) )
+    {
+        $c->push_content( $element->as_list ) unless $element->passive;
     }
     return $c->as_XML;
 }
 
-=head2 $self->container($tag)
+=head2 container
+
+Arguments: $tag
+
+Return Value: $tag
 
 Contains the container tag.
 
-=head2 $self->enctype($enctype)
+=head2 enctype
+
+Arguments: $enctype
+
+Return Value: $enctype
 
 Contains the form encoding type.
 
-=head2 $self->error( $name, $type )
+=head2 errors
 
-=head2 $self->errors( $name, $type )
+=head2 error
+
+Arguments: $name, $type
+
+Return Value: @errors
 
 Returns a list of L<HTML::Widget::Error> objects.
 
@@ -114,27 +109,33 @@ Returns a list of L<HTML::Widget::Error> objects.
     my @errors = $form->errors('foo');
     my @errors = $form->errors( 'foo', 'ASCII' );
 
+L</error> is an alias for L</errors>.
+
 =cut
 
 sub errors {
     my ( $self, $name, $type ) = @_;
 
     return 0 if $name && !$self->{_errors}->{$name};
-    
+
     my $errors = [];
     my @names = $name || keys %{ $self->{_errors} };
     for my $n (@names) {
         for my $error ( @{ $self->{_errors}->{$n} } ) {
-            next if $type &&  $error->{type} ne $type;
+            next if $type && $error->{type} ne $type;
             push @$errors, $error;
         }
     }
     return @$errors;
 }
 
-=head2 $self->element($name)
+=head2 element
 
-=head2 $self->elements($name)
+=head2 elements
+
+Arguments: $name
+
+Return Value: @elements
 
 Returns a L<HTML::Widget::Container> object for element
 or a list of L<HTML::Widget::Container> objects for form.
@@ -149,25 +150,70 @@ sub elements {
 
     my $params = dclone $self->{_params};
 
-    if (scalar @{ $self->{_embedded} } ) {
-        return map {
-            # set id so embedded elements have correct names
-            local $self->{attributes}->{id} = $_->id;
-            $self->_get_elements(
-                $_->{_elements}, $params, $_->{element_container_class}, $name
-            );
-
-        } @{ $self->{_embedded} };
+    if ( $self->implicit_subcontainer ) {
+        return $self->_get_elements(
+            $self->{_elements}->[0]->content, $params,
+            $self->{element_container_class}, $name
+        );
     }
 
-    return $self->_get_elements($self->{_elements}, $params, 
-      $self->{element_container_class}, $name);
+    return $self->_get_elements( $self->{_elements}, $params,
+        $self->{element_container_class}, $name );
+}
+
+=head2 find_result_element
+
+Arguments: $name
+
+Return Value: @elements
+
+Looks for the named element and returns a L<HTML::Widget::Container> 
+object for it if found.
+
+=cut
+
+sub find_result_element {
+    my ( $self, $name ) = @_;
+
+    my @elements = $self->find_elements( name => $name );
+    return unless @elements;
+
+    my $params = dclone $self->{_params};
+
+    return $self->_get_elements( [ $elements[0] ],
+        $params, $self->{element_container_class}, $name );
+}
+
+=head2 elements_for
+
+Arguments: $name
+
+Return Value: @elements
+
+If the named element is a Block or NullContainer element, return a list
+of L<HTML::Widget::Container> objects for the contents of that element.
+
+=cut
+
+sub elements_for {
+    my ( $self, $name ) = @_;
+
+    my @elements = $self->find_elements( name => $name );
+    return unless @elements;
+
+    my $ble = $elements[0];
+    return unless $ble->isa('HTML::Widget::Element::NullContainer');
+
+    my $params = dclone $self->{_params};
+
+    return $self->_get_elements( $ble->content, $params,
+        $self->{element_container_class} );
 }
 
 # code reuse++
 sub _get_elements {
-    my ($self, $elements, $params, $element_container_class, $name) = @_;
-    
+    my ( $self, $elements, $params, $element_container_class, $name ) = @_;
+
     my %javascript;
     for my $js_callback ( @{ $self->{_js_callbacks} } ) {
         my $javascript = $js_callback->( $self->name );
@@ -176,38 +222,88 @@ sub _get_elements {
         }
     }
 
-    my @form;
-    for my $element ( @$elements ) {
-        local $element->{container_class} = $element_container_class if $element_container_class;
-        my $value = undef;
-        my $ename = $element->{name};
-        next if ( defined($name) && ( $ename ne $name ) );
-        $value = $params->{$ename} if ( defined($ename) && $params );
-        my $container =
-          $element->containerize( $self, $value, $self->{_errors}->{$ename} );
-        $params->{$ename} = $value;
-        $container->{javascript} ||= '';
-        $container->{javascript} .= $javascript{$ename} if $javascript{$ename};
-        return $container if $name;
-        push @form, $container;
-    }
-    return @form;
+    # the hashref of args is carried through - recursively as necessary
+    #  - to _containerize_elements().
+    return $self->_containerize_elements(
+        $elements,
+        {   name                    => $name,
+            params                  => $params,
+            element_container_class => $element_container_class,
+            javascript              => \%javascript,
+            toplevel                => 1,
+            submitted               => $self->submitted,
+        } );
 }
 
-=head2 $self->empty_errors(1)
+# also called by HTML::Element::Block, so code reuse++ again
+sub _containerize_elements {
+    my ( $self, $elements, $argsref ) = @_;
+
+    my $args = dclone $argsref;    # make copy to pass on
+    my ( $element_container_class, $javascript, $name, $params, $toplevel )
+        = @$args{qw(element_container_class javascript name params toplevel)};
+    delete $args->{toplevel};
+
+    my @content;
+    for my $element (@$elements) {
+        local $element->{container_class} = $element_container_class
+            if $element_container_class;
+        local $element->{_anonymous} = 1
+            if ( $self->implicit_subcontainer and $toplevel );
+        my ( $value, $error ) = ( undef, undef );
+        my $ename = $element->{name};
+        $value = $params->{$ename} if ( defined($ename) && $params );
+        next if ( defined($name) && defined($ename) && ( $ename ne $name ) );
+        $value = $params->{$ename} if ( defined($ename) && $params );
+        $error = $self->{_errors}->{$ename} if defined $ename;
+        my $container = $element->containerize( $self, $value, $error, $args );
+        $container->{javascript} ||= '';
+        $container->{javascript} .= $javascript->{$ename}
+            if ( $ename and $javascript->{$ename} );
+        return $container if $name;
+        push @content, $container;
+    }
+    return @content;
+}
+
+=head2 find_elements
+
+Return Value: @elements
+
+Exactly the same as L<HTML::Widget/find_elements>
+
+=cut
+
+sub find_elements {
+
+    # WARNING: Not safe for subclassing
+    return shift->HTML::Widget::find_elements(@_);
+}
+
+=head2 empty_errors
+
+Arguments: $bool
+
+Return Value: $bool
 
 Create spans for errors even when there's no errors.. (For AJAX validation validation)
 
-=head2 $self->has_error($name);
+=head2 has_errors
 
-=head2 $self->has_errors($name);
+=head2 has_error
 
-=head2 $self->have_errors($name);
+=head2 have_errors
+
+Arguments: $name
+
+Return Value: $bool
 
 Returns a list of element names.
 
     my @names = $form->has_errors;
     my $error = $form->has_errors($name);
+
+L</has_error> and L</have_errors> are aliases for L</has_errors>.
 
 =cut
 
@@ -215,23 +311,41 @@ sub has_errors {
     my ( $self, $name ) = @_;
     my @names = keys %{ $self->{_errors} };
     return @names unless $name;
-    return 1 if grep { /$name/ } @names;
+    return 1 if grep {/$name/} @names;
     return 0;
 }
 
-=head2 $self->id($id)
+=head2 id
+
+Arguments: $id
+
+Return Value: $id
 
 Contains the widget id.
 
-=head2 $self->legend($legend)
+=head2 legend
+
+Arguments: $legend
+
+Return Value: $legend
 
 Contains the legend.
 
-=head2 $self->method($method)
+=head2 method
+
+Arguments: $method
+
+Return Value: $method
 
 Contains the form method.
 
-=head2 $self->param($name)
+=head2 param
+
+Arguments: $name
+
+Return Value (scalar context): $value or \@values
+
+Return Value (list context): @values
 
 Returns valid parameters with a CGI.pm-compatible param method. (read-only)
 
@@ -251,24 +365,28 @@ sub param {
 
         if ( ref $self->{_params}->{$param} eq 'ARRAY' ) {
             return (wantarray)
-              ? @{ $self->{_params}->{$param} }
-              : $self->{_params}->{$param}->[0];
+                ? @{ $self->{_params}->{$param} }
+                : $self->{_params}->{$param}->[0];
         }
         else {
             return (wantarray)
-              ? ( $self->{_params}->{$param} )
-              : $self->{_params}->{$param};
+                ? ( $self->{_params}->{$param} )
+                : $self->{_params}->{$param};
         }
     }
 
     return $self->valid;
 }
 
-=head2 $self->params($params)
+=head2 params
 
-=head2 $self->parameters($params)
+=head2 parameters
+
+Return Value: \%params
 
 Returns validated params as hashref.
+
+L</parameters> is an alias for L</params>.
 
 =cut
 
@@ -278,26 +396,51 @@ sub params {
     my %params;
     for my $name (@names) {
         my @values = $self->param($name);
-        if (@values > 1) {
+        if ( @values > 1 ) {
             $params{$name} = \@values;
-        } else {
+        }
+        else {
             $params{$name} = $values[0];
         }
     }
     return \%params;
 }
 
-=head2 $self->subcontainer($tag)
+=head2 subcontainer
+
+Arguments: $tag
+
+Return Value: $tag
 
 Contains the subcontainer tag.
 
-=head2 $self->strict($strict)
+=head2 strict
+
+Arguments: $bool
+
+Return Value: $bool
 
 Only consider parameters that pass at least one constraint valid.
 
-=head2 $self->valid
+=head2 submitted
 
-Returns a list of element names.
+=head2 is_submitted
+
+Return Value: $bool
+
+Returns true if C<<$widget->process>> received a C<<$query>> object.
+
+L</is_submitted> is an alias for L</submitted>.
+
+=head2 valid
+
+Return Value: @names
+
+Arguments: $name
+
+Return Value: $bool
+
+Returns a list of element names. Returns true/false if a name is given.
 
     my @names = $form->valid;
     my $valid = $form->valid($name);
@@ -318,7 +461,7 @@ sub valid {
         @names = keys %{ $self->{_params} };
     }
     my %valid;
-  CHECK: for my $name (@names) {
+CHECK: for my $name (@names) {
         for my $error (@errors) {
             next CHECK if $name eq $error;
         }
@@ -326,23 +469,31 @@ sub valid {
     }
     my @valid = keys %valid;
     return @valid unless $name;
-    return 1 if grep { /$name/ } @valid;
+    return 1 if grep {/\Q$name/} @valid;
     return 0;
 }
 
 =head2 add_valid <key>,<value>
+
+Arguments: $key, $value
+
+Return Value: $value
 
 Adds another valid value to the hash.
 
 =cut 
 
 sub add_valid {
-    my  ($self, $key, $value ) = @_;
-    $self->{_params}->{$key}=$value;
+    my ( $self, $key, $value ) = @_;
+    $self->{_params}->{$key} = $value;
     return $value;
 }
 
 =head2 add_error
+
+Arguments: \%attributes
+
+Return Value: $error
 
     $result->add_error({ name => 'foo' });
 
@@ -377,16 +528,16 @@ field.
 
 sub add_error {
     my ( $self, $args ) = @_;
-    
+
     die "name argument required" unless defined $args->{name};
-    
-    $args->{type} = 'Custom' if not exists $args->{type};
+
+    $args->{type}    = 'Custom'        if not exists $args->{type};
     $args->{message} = 'Invalid Input' if not exists $args->{message};
-    
-    my $error = HTML::Widget::Error->new( $args );
-    
-    push @{ $self->{_errors}->{$args->{name}} }, $error;
-    
+
+    my $error = HTML::Widget::Error->new($args);
+
+    push @{ $self->{_errors}->{ $args->{name} } }, $error;
+
     return $error;
 }
 

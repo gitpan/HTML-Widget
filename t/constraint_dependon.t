@@ -1,7 +1,9 @@
-use Test::More tests => 5;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 8;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -14,42 +16,46 @@ $w->constraint( 'DependOn', 'foo', 'bar' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => 'nada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => 'nada',
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_bar" name="bar" type="text" value="nada" /></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+    is( $f->param('bar'), 'nada', 'bar value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ other => 'whatever' });
+    my $query = HTMLWidget::TestLib->mock_query( { other => 'whatever' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" /></fieldset></form>
-EOF
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ bar => 'only' });
+    my $query = HTMLWidget::TestLib->mock_query( { bar => 'only' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /><input class="textfield" id="widget_bar" name="bar" type="text" value="only" /></fieldset></form>
-EOF
+
+    is( $f->param('bar'), 'only', 'bar value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'yada' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'yada' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" /></span><span class="error_messages" id="widget_bar_errors"><span class="dependon_errors" id="widget_bar_error_dependon">Invalid Input</span></span></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+
+    ok( $f->errors('bar'), 'bar has errors' );
 }

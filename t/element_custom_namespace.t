@@ -1,14 +1,16 @@
-use Test::More tests => 3;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 2;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
-$w->element( '+HTMLWidget::CustomElement', 'foo' )
-    ->value('foo')->size(30)->label('Foo');
+$w->element( '+HTMLWidget::CustomElement', 'foo' )->value('foo')->size(30)
+    ->label('Foo');
 
 $w->constraint( 'Integer', 'foo' );
 
@@ -22,9 +24,10 @@ EOF
 
 # With mocked basic query
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => '23',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => '23',
+        } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );

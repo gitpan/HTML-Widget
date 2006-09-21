@@ -1,7 +1,9 @@
-use Test::More tests => 2;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 1;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 

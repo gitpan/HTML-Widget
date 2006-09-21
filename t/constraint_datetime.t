@@ -1,16 +1,9 @@
-use Test::More;
+use strict;
+use warnings;
 
-BEGIN {
-  eval { require Date::Calc };
-  if ($@ =~ m{Can.t locate Date/Calc.pm}) {
-    plan skip_all => "The Datetime constraint requires Date::Calc";
-  } else {
-    plan tests => 3;
-  }
-}
+use Test::More tests => 13;
 
-use_ok('HTML::Widget');
-
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -28,34 +21,44 @@ $w->constraint( 'DateTime', 'year', 'month', 'day', 'hour', 'minute',
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        year   => '2005',
-        month  => '12',
-        day    => '9',
-        hour   => '10',
-        minute => '25',
-        second => '13'
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            year   => '2005',
+            month  => '12',
+            day    => '9',
+            hour   => '10',
+            minute => '25',
+            second => '13'
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_year" name="year" type="text" value="2005" /><input class="textfield" id="widget_month" name="month" type="text" value="12" /><input class="textfield" id="widget_day" name="day" type="text" value="9" /><input class="textfield" id="widget_hour" name="hour" type="text" value="10" /><input class="textfield" id="widget_month" name="month" type="text" value="12" /><input class="textfield" id="widget_second" name="second" type="text" value="13" /></fieldset></form>
-EOF
+
+    is( $f->param('year'),   2005, 'year value' );
+    is( $f->param('month'),  12,   'month value' );
+    is( $f->param('day'),    9,    'day value' );
+    is( $f->param('hour'),   10,   'hour value' );
+    is( $f->param('minute'), 25,   'minute value' );
+    is( $f->param('second'), 13,   'second value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        year   => '2005',
-        month  => '11',
-        day    => '500',
-        hour   => '10',
-        minute => '15',
-        second => '23'
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            year   => '2005',
+            month  => '11',
+            day    => '500',
+            hour   => '10',
+            minute => '15',
+            second => '23'
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_year" name="year" type="text" value="2005" /></span><span class="error_messages" id="widget_year_errors"><span class="datetime_errors" id="widget_year_error_datetime">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_month" name="month" type="text" value="11" /></span><span class="error_messages" id="widget_month_errors"><span class="datetime_errors" id="widget_month_error_datetime">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_day" name="day" type="text" value="500" /></span><span class="error_messages" id="widget_day_errors"><span class="datetime_errors" id="widget_day_error_datetime">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_hour" name="hour" type="text" value="10" /></span><span class="error_messages" id="widget_hour_errors"><span class="datetime_errors" id="widget_hour_error_datetime">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_month" name="month" type="text" value="11" /></span><span class="error_messages" id="widget_month_errors"><span class="datetime_errors" id="widget_month_error_datetime">Invalid Input</span></span><span class="fields_with_errors"><input class="textfield" id="widget_second" name="second" type="text" value="23" /></span><span class="error_messages" id="widget_second_errors"><span class="datetime_errors" id="widget_second_error_datetime">Invalid Input</span></span></fieldset></form>
-EOF
+
+    ok( $f->errors('year'),   'year has errors' );
+    ok( $f->errors('month'),  'month has errors' );
+    ok( $f->errors('day'),    'day has errors' );
+    ok( $f->errors('hour'),   'hour has errors' );
+    ok( $f->errors('minute'), 'minute has errors' );
+    ok( $f->errors('second'), 'second has errors' );
 }

@@ -5,9 +5,11 @@ use strict;
 use base 'HTML::Widget::Element';
 use HTML::Widget::Error;
 
-*value = \&selected;
+*value            = \&selected;
+*constrain_values = \&constrain_options;
 
-__PACKAGE__->mk_accessors(qw/comment label multiple options selected/);
+__PACKAGE__->mk_accessors(
+    qw/comment label multiple options selected constrain_options/);
 __PACKAGE__->mk_attr_accessors(qw/size/);
 
 =head1 NAME
@@ -22,14 +24,15 @@ HTML::Widget::Element::Select - Select Element
     $e->size(23);
     $e->options( foo => 'Foo', bar => 'Bar' );
     $e->selected(qw/foo bar/);
+    $e->constrain_options(1);
 
 =head1 DESCRIPTION
 
 Select Element.
 
-An implicit L<In Constraint|HTML::Widget::Constraint::In> is
-automatically added to every Select element to ensure that only key values
-from the L</options> list are considered valid.
+As of version 1.09, an L<In constraint|HTML::Widget::Constraint::In> is no 
+longer automatically added to Select elements. Use L</constrain_options> to 
+provide this functionality.
 
 =head1 METHODS
 
@@ -64,77 +67,84 @@ option tag, and its corresponding value is the text displayed in the element.
 
 =head2 selected
 
-=head2 value (alias)
+=head2 value
 
 A list of keys (unique option ids) which will be pre-set to "selected".
 Can also be addressed as value for consistency with the other elements
 
-=head2 $self->prepare( $widget, $value )
+L</value> is an alias for L</selected>.
+
+=head2 constrain_options
+
+=head2 constrain_values
+
+If true, an L<In constraint|HTML::Widget::Constraint::In> will 
+automatically be added to the widget, using the key names from L</options>.
+
+L</constrain_values> is an alias for L</constrain_options>.
+
+=head2 prepare
 
 =cut
 
 sub prepare {
     my ( $self, $w, $value ) = @_;
-    
-    my $name = $self->name;
-    
-    # return if there's already an All constraint for this element
-    for my $c ( $w->get_constraints(type => 'All') ) {
-        if ($c->names && $c->names->[0] eq $name) {
-            return;
-        }
+
+    if ( $self->constrain_values ) {
+        my $name = $self->name;
+
+        my %options = @{ $self->options } if ( ref $self->options );
+
+        my @uniq = keys %options;
+
+        $w->constraint( 'In', $name )->in(@uniq)
+            if @uniq;
     }
-    
-    my %options = @{ $self->options } if (ref $self->options);
-    my %seen;
-    my @uniq = grep { ! $seen{$_} ++ } keys %options;
-    
-    $w->constraint( 'In', $name )->in( @uniq )
-        if @uniq;
-    
+
     return;
 }
 
-=head2 $self->process( $params, $uploads )
+=head2 process
 
 =cut
 
 sub process {
     my ( $self, $params, $uploads ) = @_;
-    
+
     my $errors;
     my $name = $self->name;
-    
+
     # only allow multiple values is multiple() is true
-    if ( ! $self->multiple() && ref $params->{$name} eq 'ARRAY' ) {
-        push @$errors, HTML::Widget::Error->new({
-            name    => $name,
-            type    => 'Multiple',
-            message => 'Multiple Selections Not Allowed',
-        });
+    if ( !$self->multiple() && ref $params->{$name} eq 'ARRAY' ) {
+        push @$errors,
+            HTML::Widget::Error->new( {
+                name    => $name,
+                type    => 'Multiple',
+                message => 'Multiple Selections Not Allowed',
+            } );
     }
     return $errors;
 }
 
-=head2 $self->containerize( $widget, $value, $errors )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value, $errors ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
     my $options = $self->options;
     my @options = ref $options eq 'ARRAY' ? @$options : ();
     my @o;
     my @values;
-    if ($value) {
+    if ( defined $value ) {
         @values = ref $value eq 'ARRAY' ? @$value : ($value);
     }
-    else {
+    elsif ( !$args->{submitted} ) {
         @values =
-          ref $self->selected eq 'ARRAY'
-          ? @{ $self->selected }
-          : ( $self->selected );
+            ref $self->selected eq 'ARRAY'
+            ? @{ $self->selected }
+            : ( $self->selected );
     }
 
     # You might be tempted to say 'while ( my $key = shift( @temp_options ) )'
@@ -162,11 +172,11 @@ sub containerize {
     $self->attributes->{class} ||= 'select';
     my $selectelm = HTML::Element->new('select');
     $selectelm->push_content(@o);
-	
+
     # if ($label) {
     #     $label->push_content($selectelm);
     # }
-	#
+    #
     #    $l ? ( $l->push_content($i) ) : ( $l = $i );
 
     my $id = $self->id($w);
@@ -177,14 +187,19 @@ sub containerize {
         if $self->multiple;
 
     $selectelm->attr( $_ => ${ $self->attributes }{$_} )
-      for ( keys %{ $self->attributes } );
+        for ( keys %{ $self->attributes } );
 
     #    $l->push_content($i);
 
     my $e = $self->mk_error( $w, $errors );
 
-    return $self->container( { element => $selectelm, error => $e, label => $label } );
+    return $self->container(
+        { element => $selectelm, error => $e, label => $label } );
 }
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

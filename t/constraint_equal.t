@@ -1,7 +1,9 @@
-use Test::More tests => 5;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 8;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -14,22 +16,27 @@ $w->constraint( 'Equal', 'foo', 'bar' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => 'yada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => 'yada',
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_bar" name="bar" type="text" value="yada" /></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+
+    is( $f->param('foo'), $f->param('bar'), 'foo eq bar' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Valid (blank 1)
 SKIP: {
     skip "drunken feature", 1;
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => '', bar => 'yada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => '',
+            bar => 'yada',
+        } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
@@ -40,9 +47,10 @@ EOF
 # Valid (blank 2)
 SKIP: {
     skip "drunken feature", 1;
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', bar => '',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo => 'yada',
+            bar => '',
+        } );
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
@@ -52,12 +60,16 @@ EOF
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => 'yada', 'bar' => 'nada',
-    });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            foo   => 'yada',
+            'bar' => 'nada',
+        } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /><span class="fields_with_errors"><input class="textfield" id="widget_bar" name="bar" type="text" value="nada" /></span><span class="error_messages" id="widget_bar_errors"><span class="equal_errors" id="widget_bar_error_equal">Invalid Input</span></span></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'yada', 'foo value' );
+
+    isnt( $f->param('foo'), $f->param('bar'), 'foo ne bar' );
+
+    ok( $f->errors('bar'), 'bar has errors' );
 }

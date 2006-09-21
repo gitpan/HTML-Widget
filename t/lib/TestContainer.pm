@@ -2,6 +2,9 @@
 package 
     TestContainer;
 
+use strict;
+use warnings;
+
 use base 'HTML::Widget::Container';
 
 sub _build_element {

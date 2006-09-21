@@ -39,14 +39,14 @@ sub new {
     shift->NEXT::new(@_)->rows(20)->cols(40);
 }
 
-=head2 $self->containerize( $widget, $value, $errors )
+=head2 containerize
 
 =cut
 
 sub containerize {
-    my ( $self, $w, $value, $errors ) = @_;
+    my ( $self, $w, $value, $errors, $args ) = @_;
 
-    $value ||= $self->value;
+    $value = $self->value if ( not defined $value ) and not $args->{submitted};
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
@@ -54,13 +54,13 @@ sub containerize {
 
     $self->attributes->{class} ||= 'textarea';
     my $i = HTML::Element->new('textarea');
-    $i->push_content($value) if $value;
+    $i->push_content($value) if defined $value;
     my $id = $self->id($w);
     $i->attr( id   => $id );
     $i->attr( name => $self->name );
 
     $i->attr( $_ => ${ $self->attributes }{$_} )
-      for ( keys %{ $self->attributes } );
+        for ( keys %{ $self->attributes } );
 
     my $e = $self->mk_error( $w, $errors );
 
@@ -76,6 +76,10 @@ sub containerize {
 =head2 rows
 
 =head2 wrap
+
+=head1 SEE ALSO
+
+L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

@@ -1,14 +1,10 @@
-use Test::More tests => 49;
+use strict;
+use warnings;
 
+use Test::More tests => 46;
+
+use HTML::Widget;
 use lib qw(t/lib);
-
-BEGIN {
-	use_ok('HTML::Widget');
-	use_ok('HTML::Widget::Element');
-	use_ok('HTML::Widget::Element::Textfield');
-	#use_ok('TestContainer');
-}
-
 use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new->method('post')->action('/foo/bar');
@@ -21,35 +17,39 @@ $w->constraint( 'Integer', 'age' )->message('No integer.');
 $w->constraint( 'Length',  'age' )->min(1)->max(3)->message('Wrong length.');
 $w->constraint( 'Range',   'age' )->min(22)->max(24)->message('Wrong range.');
 $w->constraint( 'Regex',   'age' )->regex(qr/\D+/)
-  ->message('Contains digit characters.');
+    ->message('Contains digit characters.');
 $w->constraint( 'Not_Integer', 'name' );
-$w->constraint( 'All',         'age', 'name' )->message('Missing value.');
+$w->constraint( 'All', 'age', 'name' )->message('Missing value.');
 
 {
-	my ($e) = $w->get_elements(name => 'age');
-	ok($e, 'Found element with name of "age"');
-	isa_ok($e, 'HTML::Widget::Element');
-	ok($e->container_class, 'Can read container class for individual object');
-	is($e->container_class, 'HTML::Widget::Container', 'Default container class is right');
-	HTML::Widget::Element->container_class('Class1');
-	is($e->container_class, 'Class1', 'Object instance inherits super container class value');
-	HTML::Widget::Element::Textfield->container_class('Class2');
-	is($e->container_class, 'Class2', 'Object instance inherits container class value');
+    my ($e) = $w->get_elements( name => 'age' );
+    ok( $e, 'Found element with name of "age"' );
+    isa_ok( $e, 'HTML::Widget::Element' );
+    ok( $e->container_class, 'Can read container class for individual object' );
+    is( $e->container_class, 'HTML::Widget::Container',
+        'Default container class is right' );
+    HTML::Widget::Element->container_class('Class1');
+    is( $e->container_class, 'Class1',
+        'Object instance inherits super container class value' );
+    HTML::Widget::Element::Textfield->container_class('Class2');
+    is( $e->container_class, 'Class2',
+        'Object instance inherits container class value' );
 
-	$e->container_class('Class3');
-	is($e->container_class, 'Class3', 'Object instance container class value');
-	$e->container_class(undef);
-	
-	HTML::Widget::Element::Textfield->container_class('');
-	isa_ok($e->containerize($w), 'HTML::Widget::Container', 'Container isa Container when class set to empty string');
+    $e->container_class('Class3');
+    is( $e->container_class, 'Class3',
+        'Object instance container class value' );
+    $e->container_class(undef);
 
-	# Reset test classes back, and use TestContainer for all elements
-	delete $e->{container_class};
-	HTML::Widget::Element->container_class('TestContainer');
-	HTML::Widget::Element::Textfield->container_class('TestContainer');
+    HTML::Widget::Element::Textfield->container_class('');
+    isa_ok( $e->containerize($w), 'HTML::Widget::Container',
+        'Container isa Container when class set to empty string' );
+
+    # Reset test classes back, and use TestContainer for all elements
+    delete $e->{container_class};
+    HTML::Widget::Element->container_class('TestContainer');
+    HTML::Widget::Element::Textfield->container_class('TestContainer');
 
 }
-
 
 # Without query
 {
@@ -61,17 +61,20 @@ EOF
 
 # With mocked basic query
 {
-    my $query = HTMLWidget::TestLib->mock_query({ age => 23, name => 'sri' });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            age  => 23,
+            name => 'sri',
+            ok   => 'OK',
+        } );
 
     my $f = $w->process($query);
     isa_ok( $f, 'HTML::Widget::Result',
         'Result is HTML::Widget::Result object' );
 
     my @e = $f->has_errors;
-    my @v = $f->valid;
 
-    is( $v[0], 'name', 'Field name is valid' );
-    is( $e[0], 'age',  'Field age has errors' );
+    ok( $f->valid('name'), 'Field name is valid' );
+    is( $e[0], 'age', 'Field age has errors' );
 
     is( $f->valid('name'), 1, 'Field name is valid' );
     is( !$f->valid('age'), 1, 'Field age is not valid' );
@@ -89,21 +92,23 @@ EOF
     is( $f->params->{age},     undef, 'Param age is not defined' );
     is( $f->parameters->{foo}, undef, 'Param foo is not defined' );
 
-    $f->add_valid('bar','dude');
+    $f->add_valid( 'bar', 'dude' );
 
-    is( $f->params->{bar}, 'dude','Bar is dude');
-    is ($f->param('bar'), 'dude','Bar is dude');
-    is ($f->valid('bar'), 1,'Bar is valid');
-    
-	my $c = $f->element('ok');
-	is( $c->label, undef, 'Label is empty');
+    is( $f->params->{bar}, 'dude', 'Bar is dude' );
+    is( $f->param('bar'),  'dude', 'Bar is dude' );
+    is( $f->valid('bar'),  1,      'Bar is valid' );
+
+    my $c = $f->element('ok');
+    is( $c->label, undef, 'Label is empty' );
 
     $c = $f->element('age');
-    isa_ok( $c, 'HTML::Widget::Container', 'Element is a (base) container object' );
-	isa_ok( $c, 'TestContainer', 'Element is also an overridden container object' );
+    isa_ok( $c, 'HTML::Widget::Container',
+        'Element is a (base) container object' );
+    isa_ok( $c, 'TestContainer',
+        'Element is also an overridden container object' );
     isa_ok( $c->element, 'HTML::Element', 'Element is a HTML::Element object' );
     isa_ok( $c->error,   'HTML::Element', 'Error is a HTML::Element object' );
-	isa_ok( $c->label,   'HTML::Element', 'Label is a HTML::Element object' );
+    isa_ok( $c->label,   'HTML::Element', 'Label is a HTML::Element object' );
     is( $c->javascript, '', 'JavaScript is empty' );
 
     is( $c->element_xml, <<EOF, 'Element XML output is ok' );
@@ -131,8 +136,7 @@ EOF
     my @errors = $f->errors;
     is( $errors[0]->name, 'age', 'Expected error' );
 
-    is(
-        $errors[0],
+    is( $errors[0],
         'Contains digit characters.',
         'Field contains digit characters'
     );
@@ -178,26 +182,28 @@ EOF
 {
     my $w2 = HTML::Widget->new('foo')->action('/foo');
 
-	$w2->merge($w);
+    $w2->merge($w);
 
-	HTML::Widget::Element->container_class(undef);
-	HTML::Widget::Element::Textfield->container_class(undef);
+    HTML::Widget::Element->container_class(undef);
+    HTML::Widget::Element::Textfield->container_class(undef);
 
+    my $f = $w2->process;
 
-	my $f = $w2->process;
-
-	is ($f->as_xml, <<EOF, 'Output is sane before $w->element_container_class');
+    is( $f->as_xml,
+        <<EOF, 'Output is sane before $w->element_container_class' );
 <form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 
-	$w2->element_container_class('TestContainer');
-	$f = $w2->process;
-	is ($f->as_xml, <<EOF, '$w2->element_container_class changes output for that widget');
+    $w2->element_container_class('TestContainer');
+    $f = $w2->process;
+    is( $f->as_xml,
+        <<EOF, '$w2->element_container_class changes output for that widget' );
 <form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age</label><br /><input class="textfield" id="foo_age" name="age" size="3" type="text" /><label for="foo_name" id="foo_name_label">Name</label><br /><input class="textfield" id="foo_name" name="name" size="60" type="text" /><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 
-	$f = $w->name('foo')->action('/foo')->process;
-	is ($f->as_xml, <<EOF, '$w2->element_container_class doesnt change output for $w->process');
+    $f = $w->name('foo')->action('/foo')->process;
+    is( $f->as_xml,
+        <<EOF, '$w2->element_container_class doesnt change output for $w->process' );
 <form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }

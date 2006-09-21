@@ -18,11 +18,13 @@ Printable Constraint.
 
 =head1 METHODS
 
-=head2 $self->regex
+=head2 regex
+
+Provides a regex to validate printable characters.
 
 =cut
 
-sub regex { qr/^([[:print:]]*)$/ }
+sub regex {qr/^([[:print:]]*)$/}
 
 =head1 AUTHOR
 

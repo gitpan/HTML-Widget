@@ -1,7 +1,9 @@
-use Test::More tests => 8;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 11;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -13,53 +15,59 @@ $w->constraint( 'HTTP', 'foo' );
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'http://oook.de' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'http://oook.de' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="http://oook.de" /></fieldset></form>
-EOF
+
+    is( $f->param('foo'), 'http://oook.de', 'foo value' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => '' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => '' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" /></fieldset></form>
-EOF
+
+    ok( $f->valid('foo'), 'foo valid' );
+
+    is( $f->param('foo'), '', 'foo is empty string' );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({ foo => 'foobar' });
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'foobar' } );
 
     my $f = $w->process($query);
-    is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="foobar" /></span><span class="error_messages" id="widget_foo_errors"><span class="http_errors" id="widget_foo_error_http">Invalid Input</span></span></fieldset></form>
-EOF
+
+    ok( $f->errors('foo'), 'foo has errors' );
 }
 
 # Multiple Valid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => [ 'http://catalyst.perl.org', 'http://oook.de' ],
-    });
+    my $query = HTMLWidget::TestLib->mock_query(
+        { foo => [ 'http://catalyst.perl.org', 'http://oook.de' ], } );
 
     my $f = $w->process($query);
+
     is( $f->valid('foo'), 1, "Valid" );
+
     my @results = $f->param('foo');
     is( $results[0], 'http://catalyst.perl.org', "Multiple valid values" );
     is( $results[1], 'http://oook.de',           "Multiple valid values" );
+
+    ok( !$f->errors, 'no errors' );
 }
 
 # Multiple Invalid
 {
-    my $query = HTMLWidget::TestLib->mock_query({
-        foo => [ 'yada', 'foo' ],
-    });
+    my $query
+        = HTMLWidget::TestLib->mock_query( { foo => [ 'yada', 'foo' ], } );
 
     my $f = $w->process($query);
-    is( $f->valid('foo'), 0, "Invalid" );
+
+    ok( $f->errors('foo'), 'foo has errors' );
 }

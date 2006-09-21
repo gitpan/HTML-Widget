@@ -18,11 +18,13 @@ Integer Constraint.
 
 =head1 METHODS
 
-=head2 $self->regex
+=head2 regex
+
+Provides a regex to validate unsigned integers.
 
 =cut
 
-sub regex { qr/^[0-9]*$/ }
+sub regex {qr/^[0-9]*$/}
 
 =head1 AUTHOR
 

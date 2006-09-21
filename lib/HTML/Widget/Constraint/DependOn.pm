@@ -18,7 +18,7 @@ If the first field listed is filled in, all of the others are required.
 
 =head1 METHODS
 
-=head2 $self->process( $widget, $params )
+=head2 process
 
 =cut
 
@@ -27,16 +27,16 @@ sub process {
     my $results = [];
     my @names   = @{ $self->names };
     my $first   = shift @names;
-    
-    return [] if ! exists $params->{$first};
-    
-    for my $name ( @names ) {
+
+    return [] if !exists $params->{$first};
+
+    for my $name (@names) {
         push @$results,
-          HTML::Widget::Error->new(
+            HTML::Widget::Error->new(
             { name => $name, message => $self->mk_message } )
-          if $self->not ? $params->{$name} : !$params->{$name};
+            if $self->not ? $params->{$name} : !$params->{$name};
     }
-    
+
     return $results;
 }
 

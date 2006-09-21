@@ -1,22 +1,57 @@
-#!/usr/bin/perl
-
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 
+use HTML::Widget;
+use lib 't/lib';
+use HTMLWidget::TestLib;
 
-my $m; BEGIN { use_ok($m = "HTML::Widget::Constraint::In") }
+my $w = HTML::Widget->new;
 
-can_ok($m, "new");
-isa_ok(my $o = $m->new, $m);
+$w->element( 'Textfield', 'foo' );
 
-can_ok($m, "in");
-$o->in( qw/foo bar gorch/ );
+$w->constraint( 'In', 'foo' )->in( 'one', 'two', 'three' );
 
-can_ok($m, "validate");
+# Valid
+{
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'one' } );
 
-ok( $o->validate( "foo" ), "foo");
-ok( $o->validate( "bar" ), "bar");
-ok( !$o->validate( "baz" ), "baz");
+    my $f = $w->process($query);
+
+    is( $f->param('foo'), 'one', 'foo value' );
+
+    ok( !$f->errors, 'no errors' );
+}
+
+# Valid
+{
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'two' } );
+
+    my $f = $w->process($query);
+
+    is( $f->param('foo'), 'two', 'foo value' );
+
+    ok( !$f->errors, 'no errors' );
+}
+
+# Valid
+{
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'three' } );
+
+    my $f = $w->process($query);
+
+    is( $f->param('foo'), 'three', 'foo value' );
+
+    ok( !$f->errors, 'no errors' );
+}
+
+# Invalid
+{
+    my $query = HTMLWidget::TestLib->mock_query( { foo => 'four' } );
+
+    my $f = $w->process($query);
+
+    ok( $f->errors('foo'), 'foo has errors' );
+}
 

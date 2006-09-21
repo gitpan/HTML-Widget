@@ -19,7 +19,7 @@ Date Constraint.
 
 =head1 METHODS
 
-=head2 $self->process( $widget, $params )
+=head2 process
 
 =cut
 
@@ -27,7 +27,7 @@ sub process {
     my ( $self, $w, $params ) = @_;
 
     return []
-      unless ( $self->names && @{ $self->names } == 3 );
+        unless ( $self->names && @{ $self->names } == 3 );
 
     my ( $year, $month, $day ) = @{ $self->names };
     my $y = $params->{$year};

@@ -1,7 +1,9 @@
-use Test::More tests => 33;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
+use Test::More tests => 32;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -11,35 +13,40 @@ $w->element( 'Textfield', 'age' )->label('Age')->size(3);
 $w->element( 'Textfield', 'name' )->label('Name')->size(60);
 $w->element( 'Submit',    'ok' )->value('OK');
 
+$w->legend('Fool');
+
 $w->constraint( 'Integer', 'age' )->message('No integer.');
 $w->constraint( 'Length',  'age' )->min(1)->max(3)->message('Wrong length.');
 $w->constraint( 'Range',   'age' )->min(22)->max(24)->message('Wrong range.');
 $w->constraint( 'Regex',   'age' )->regex(qr/\D+/)
-  ->message('Contains digit characters.');
+    ->message('Contains digit characters.');
 $w->constraint( 'Not_Integer', 'name' );
-$w->constraint( 'All',         'age', 'name' )->message('Missing value.');
+$w->constraint( 'All', 'age', 'name' )->message('Missing value.');
 
 # Without query
 {
     my $f = $w->result;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><label for="widget_age" id="widget_age_label">Age<input class="textfield" id="widget_age" name="age" size="3" type="text" /></label><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset><legend id="widget_legend">Fool</legend><label for="widget_age" id="widget_age_label">Age<input class="textfield" id="widget_age" name="age" size="3" type="text" /></label><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
 # With mocked basic query
 {
-    my $query = HTMLWidget::TestLib->mock_query({ age => 23, name => 'sri' });
+    my $query = HTMLWidget::TestLib->mock_query( {
+            age  => 23,
+            name => 'sri',
+            ok   => 'OK',
+        } );
 
     my $f = $w->process($query);
     isa_ok( $f, 'HTML::Widget::Result',
         'Result is HTML::Widget::Result object' );
 
     my @e = $f->has_errors;
-    my @v = $f->valid;
 
-    is( $v[0], 'name', 'Field name is valid' );
-    is( $e[0], 'age',  'Field age has errors' );
+    ok( $f->valid('name'), 'Field name is valid' );
+    is( $e[0], 'age', 'Field age has errors' );
 
     is( $f->valid('name'), 1, 'Field name is valid' );
     is( !$f->valid('age'), 1, 'Field age is not valid' );
@@ -57,12 +64,11 @@ EOF
     is( $f->params->{age},     undef, 'Param age is not defined' );
     is( $f->parameters->{foo}, undef, 'Param foo is not defined' );
 
-    $f->add_valid('bar','dude');
+    $f->add_valid( 'bar', 'dude' );
 
-    is( $f->params->{bar}, 'dude','Bar is dude');
-    is ($f->param('bar'), 'dude','Bar is dude');
-    is ($f->valid('bar'), 1,'Bar is valid');
-    
+    is( $f->params->{bar}, 'dude', 'Bar is dude' );
+    is( $f->param('bar'),  'dude', 'Bar is dude' );
+    is( $f->valid('bar'),  1,      'Bar is valid' );
 
     my $c = $f->element('age');
     isa_ok( $c, 'HTML::Widget::Container', 'Element is a container object' );
@@ -91,14 +97,13 @@ EOF
     my @errors = $f->errors;
     is( $errors[0]->name, 'age', 'Expected error' );
 
-    is(
-        $errors[0],
+    is( $errors[0],
         'Contains digit characters.',
         'Field contains digit characters'
     );
 
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age<span class="fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span></label><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset><legend id="widget_legend">Fool</legend><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age<span class="fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span></label><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
@@ -114,7 +119,7 @@ EOF
 
     my $f = $w2->process;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset id="foo_widget"><label for="foo_widget_age" id="foo_widget_age_label">Age<input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /></label><label for="foo_widget_name" id="foo_widget_name_label">Name<input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset id="foo_widget"><legend id="foo_widget_legend">Fool</legend><label for="foo_widget_age" id="foo_widget_age_label">Age<input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /></label><label for="foo_widget_name" id="foo_widget_name_label">Name<input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
 EOF
 }
 

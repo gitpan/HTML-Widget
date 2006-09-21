@@ -1,8 +1,9 @@
-use Test::More tests => 3;
+use strict;
+use warnings;
 
-use_ok('HTML::Widget');
-use_ok('HTML::Element');
+use Test::More tests => 1;
 
+use HTML::Widget;
 use lib 't/lib';
 use HTMLWidget::TestLib;
 
@@ -11,10 +12,10 @@ my $w = HTML::Widget->new->tag('span')->subtag('span');
 $w->element( 'Span', 'foo' )->content('foo');
 $w->element( 'Span', 'bar' );
 
-my $b = HTML::Element->new( 'b' );
-$b->push_content( 'bold text' );
+my $b = HTML::Element->new('b');
+$b->push_content('bold text');
 
-$w->element( 'Span', 'baz' )->content( $b );
+$w->element( 'Span', 'baz' )->content($b);
 
 # Without query
 {
