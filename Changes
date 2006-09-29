@@ -1,6 +1,23 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
-1.09 
+1.10 2006-09-29
+        - RadioGroup elements are now wrapped in a fieldset tag.
+        - HTML::Widget->new() and $w->element() now accepts a hash-ref of 
+          attributes as an argument, after the name argument.
+        - $w->attributes() and $e->attributes() now accepts either a list 
+          or a hash-ref. Returns the object-ref for method chaining.
+          A hash-ref no longer overwrites existing attributes, it is now 
+          added to the existing attributes. As a special-case, the 
+          attributes hash-ref is returned if no arguments are passed.
+        - All fields elements (except Upload) have a $e->retain_default 
+          method, which if true overrides the default behaviour, so that 
+          after a field is missing from the form submission, the xml output 
+          will contain the default value, rather than be empty.
+        - $widget has new methods get_elements_ref(), get_filters_ref() 
+          and get_constraints_ref() which return an arrayref.
+        - $result has new method elements_ref() which returns an arrayref.
+
+1.09 2006-09-21
         - Embedding completely refactored by Michael Gray.
         - $w->embed( $e, @widgets) embeds into the supplied element.
         - New Fieldset element.

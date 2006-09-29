@@ -15,7 +15,7 @@ $w->element( 'Textfield', 'foo' )->value('foo');
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="foo" /></fieldset></form>
+<form id="widget" method="post"><fieldset class="widget_fieldset"><input class="textfield" id="widget_foo" name="foo" type="text" value="foo" /></fieldset></form>
 EOF
 }
 
@@ -26,7 +26,7 @@ EOF
     my $result = $w->process($query);
 
     is( "$result", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></fieldset></form>
+<form id="widget" method="post"><fieldset class="widget_fieldset"><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></fieldset></form>
 EOF
 
     $result->add_error( {
@@ -39,6 +39,6 @@ EOF
     ok( !$result->valid('foo') );
 
     is( "$result", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></span><span class="error_messages" id="widget_foo_errors"><span class="custom_errors" id="widget_foo_error_custom">bad foo</span></span></fieldset></form>
+<form id="widget" method="post"><fieldset class="widget_fieldset"><span class="fields_with_errors"><input class="textfield" id="widget_foo" name="foo" type="text" value="yada" /></span><span class="error_messages" id="widget_foo_errors"><span class="custom_errors" id="widget_foo_error_custom">bad foo</span></span></fieldset></form>
 EOF
 }

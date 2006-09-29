@@ -5,7 +5,7 @@ form {
     width: 50%;
     margin: 1em auto;
 }
-fieldset {
+.widget_fieldset {
     padding: 0.5em 0;
     border: 1px solid #c0c0c0;
     background: #f0f0f0;
@@ -17,8 +17,9 @@ legend {
     margin: 0;
     padding: 0.1em 0.5em;
 }
-label {
+label, .radiogroup_fieldset {
     padding: 0 1em;
+    margin: 0em;
     margin-top: 0.5em;
     display: block;
 }
@@ -38,6 +39,7 @@ input.texfield, input.password {
     width: 50%;
 }
 .labels_with_errors {
+    display: block;
     padding-top: 5px;
     border-top: 1px solid red;
     background: #e0e0e0;

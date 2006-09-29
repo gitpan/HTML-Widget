@@ -18,8 +18,7 @@ HTML::Widget::Element - Element Base Class
 
 =head1 SYNOPSIS
 
-    my $e = $widget->element( $type, $name );
-    $e->attributes->{class} = 'foo';
+    my $e = $widget->element( $type, $name, {disabled => 'disabled'} );
     $e->name('bar');
     $e->class('foo');
 
@@ -31,43 +30,40 @@ Element Base Class.
 
 =head2 new
 
-=cut
-
-sub new { shift->NEXT::new(@_)->attributes( {} ) }
-
 =head2 attributes
 
 =head2 attrs
 
+Arguments: %attributes
+
 Arguments: \%attributes
+
+Return Value: $element
+
+Arguments: none
 
 Return Value: \%attributes
 
-The recommended way of setting attributes is to assign directly to a 
-hash-ref key, rather than passing an entire hash-ref, which would overwrite 
-any existing attributes.
+Accepts either a list of key/value pairs, or a hash-ref.
 
-    # recommended - preserves existing key/value's
+    $e->attributes( $key => $value );
+    $e->attributes( { $key => $value } );
+
+Returns the C<$element> object, to allow method chaining.
+
+As of v1.10, passing a hash-ref no longer deletes current 
+attributes, instead the attributes are added to the current attributes 
+hash.
+
+This means the attributes hash-ref can no longer be emptied using 
+C<$e->attributes( { } );>. Instead, you may use 
+C<%{ $e->attributes } = ();>.
+
+As a special case, if no arguments are passed, the return value is a 
+hash-ref of attributes instead of the object reference. This provides 
+backwards compatability to support:
+
     $e->attributes->{key} = $value;
-    
-    # NOT recommended - deletes existing key/value's
-    $e->attributes( { key => $value } );
-
-However, when a value is set in this recommended way, the object is not 
-returned, so cannot be used for further chained method calls.
-
-    $w->element( 'Textfield', 'foo' )
-        ->size( 10 )
-        ->attributes->{'disabled'} = 'disabled';
-    # we cannot chain any further method calls after this
-
-Therefore, to set multiple attributes, it is recommended you store the 
-appropriate object, and call L</attributes> multiple times.
-
-    my $e = $w->element( 'Textfield', 'foo' )->size( 10 );
-    
-    $e->attributes->{'disabled'} = 'disabled';
-    $e->attributes->{'id'}       = 'login';
 
 L</attrs> is an alias for L</attributes>.
 

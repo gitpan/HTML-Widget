@@ -6,9 +6,9 @@ use Test::More tests => 3;
 use HTML::Widget;
 
 #       <form action="x">
-#        <fieldset>
+#        <fieldset class="widget_fieldset">
 #          <input name="x"/>
-#          <fieldset>
+#          <fieldset class="widget_fieldset">
 #           <input name="y"/>
 #          </fieldset>
 #        </fieldset>
@@ -29,7 +29,7 @@ $wo->embed($fso1);
 
 my $fo = $wo->process;
 is( $fo->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset id="foo_main"><input class="textfield" id="foo_main_bar" name="bar" type="text" /><fieldset id="foo_main_nested"><input class="textfield" id="foo_main_nested_baz" name="baz" type="text" /></fieldset></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset" id="foo_main"><input class="textfield" id="foo_main_bar" name="bar" type="text" /><fieldset class="widget_fieldset" id="foo_main_nested"><input class="textfield" id="foo_main_nested_baz" name="baz" type="text" /></fieldset></fieldset></form>
 EOF
 
 # New style
@@ -44,7 +44,7 @@ $fs2->element( 'Textfield', 'baz' );
 
 my $f = $w->process;
 is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset id="foo_main"><input class="textfield" id="foo_main_bar" name="bar" type="text" /><fieldset id="foo_main_nested"><input class="textfield" id="foo_main_nested_baz" name="baz" type="text" /></fieldset></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset" id="foo_main"><input class="textfield" id="foo_main_bar" name="bar" type="text" /><fieldset class="widget_fieldset" id="foo_main_nested"><input class="textfield" id="foo_main_nested_baz" name="baz" type="text" /></fieldset></fieldset></form>
 EOF
 
 # CHECK BOTH EXAMPLES PRODUCE SAME OUTPUT

@@ -34,7 +34,7 @@ use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 *result = \&process;
 *indi   = \&indicator;
 
-our $VERSION = '1.09';
+our $VERSION = '1.10';
 
 =head1 NAME
 
@@ -188,21 +188,33 @@ This Module is very powerful, don't misuse it as a template system!
 
 =head2 new
 
-Arguments: $name
+Arguments: $name, \%attributes
 
 Return Value: $widget
 
 Create a new HTML::Widget object. The name parameter will be used as the 
 id of the form created by the to_xml method.
 
+The C<attributes> argument is equivalent to using the l</attributes> 
+method.
+
 =cut
 
 sub new {
-    my ( $self, $name ) = @_;
+    my ( $self, $name, $attrs ) = @_;
+
     $self = bless {}, ( ref $self || $self );
     $self->container('form');
     $self->subcontainer('fieldset');
-    $self->name( $name || 'widget' );
+    $self->name( defined $name ? $name : 'widget' );
+
+    if ( defined $attrs ) {
+        die 'attributes argument must be a hash-reference'
+            if ref($attrs) ne 'HASH';
+
+        $self->attributes->{$_} = $attrs->{$_} for keys %$attrs;
+    }
+
     return $self;
 }
 
@@ -219,35 +231,36 @@ which causes most browsers to submit to the current URI.
 
 =head2 attrs
 
+Arguments: %attributes
+
 Arguments: \%attributes
+
+Return Value: $widget
+
+Arguments: none
 
 Return Value: \%attributes
 
-The recommended way of setting attributes is to assign directly to a 
-hash-ref key, rather than passing an entire hash-ref, which would overwrite 
-any existing attributes.
+Accepts either a list of key/value pairs, or a hash-ref.
 
-    # recommended - preserves existing key/value's
+    $w->attributes( $key => $value );
+    $w->attributes( { $key => $value } );
+
+Returns the C<$widget> object, to allow method chaining.
+
+As of v1.10, passing a hash-ref no longer deletes current 
+attributes, instead the attributes are added to the current attributes 
+hash.
+
+This means the attributes hash-ref can no longer be emptied using 
+C<$w->attributes( { } );>. Instead, you may use 
+C<%{ $w->attributes } = ();>.
+
+As a special case, if no arguments are passed, the return value is a 
+hash-ref of attributes instead of the object reference. This provides 
+backwards compatability to support:
+
     $w->attributes->{key} = $value;
-    
-    # NOT recommended - deletes existing key/value's
-    $w->attributes( { key => $value } );
-
-However, when a value is set in this recommended way, the object is not 
-returned, so cannot be used for further chained method calls.
-
-    $w->element( 'Textfield', 'foo' )
-        ->size( 10 )
-        ->attributes->{'disabled'} = 'disabled';
-    # we cannot chain any further method calls after this
-
-Therefore, to set multiple attributes, it is recommended you store the 
-appropriate object, and call L</attributes> multiple times.
-
-    my $e = $w->element( 'Textfield', 'foo' )->size( 10 );
-    
-    $e->attributes->{'disabled'} = 'disabled';
-    $e->attributes->{'id'}       = 'login';
 
 L</attrs> is an alias for L</attributes>.
 
@@ -277,7 +290,7 @@ See L<HTML::Widget::Element::container_class>.
 
 =head2 element
 
-Arguments: $type, $name
+Arguments: $type, $name, \%attributes
 
 Return Value: $element
 
@@ -286,6 +299,9 @@ and a name. The name is used for an id attribute on the field created for the
 element. An L<HTML::Widget::Element> object is returned, which can be used to
 set further attributes, please see the individual element classes for the 
 methods specific to each one.
+
+The C<attributes> argument is equivalent to using the 
+L<attributes|HTML::Widget::Element/attributes> method.
 
 If the element starts with a name other than C<HTML::Widget::Element::>, 
 you can fully qualify the name by using a unary plus:
@@ -364,7 +380,7 @@ a group. That is, only one item in the group will be "on" at a time.
 
 =item L<HTML::Widget::Element::RadioGroup>
 
-    my $e = $widget->element( 'RadioGroup', 'name', ['foo', 'bar', 'baz'] );
+    my $e = $widget->element( 'RadioGroup', 'name' );
     $e->comment('(Required)');
     $e->label('Foo'); # Label for whole radio group
     $e->value('bar'); # Currently selected value
@@ -466,7 +482,7 @@ C<< $widget->enctype('multipart/form-data') >> for you.
 =cut
 
 sub element {
-    my ( $self, $type, $name ) = @_;
+    my ( $self, $type, $name, $attrs ) = @_;
 
     my $abs = $type =~ s/^\+//;
     $type = "HTML::Widget::Element::$type" unless $abs;
@@ -486,6 +502,13 @@ sub element {
 
         my $implicit_subcontainer = $self->_get_implicit_subcontainer;
         $implicit_subcontainer->push_content($element);
+    }
+
+    if ( defined $attrs ) {
+        die 'attributes argument must be a hash-reference'
+            if ref($attrs) ne 'HASH';
+
+        $element->attributes->{$_} = $attrs->{$_} for keys %$attrs;
     }
 
     return $element;
@@ -593,6 +616,23 @@ sub get_elements {
     }
 
     return @elements;
+}
+
+=head2 get_elements_ref
+
+Arguments: %options
+
+Return Value: \@elements
+
+Accepts the same arguments as L</get_elements>, but returns an arrayref 
+of results instead of a list.
+
+=cut
+
+sub get_elements_ref {
+    my $self = shift;
+
+    return [ $self->get_elements(@_) ];
 }
 
 =head2 get_element
@@ -860,6 +900,23 @@ sub get_constraints {
     return @{ $self->{_constraints} };
 }
 
+=head2 get_constraints_ref
+
+Arguments: %options
+
+Return Value: \@constraints
+
+Accepts the same arguments as L</get_constraints>, but returns an arrayref 
+of results instead of a list.
+
+=cut
+
+sub get_constraints_ref {
+    my $self = shift;
+
+    return [ $self->get_constraints(@_) ];
+}
+
 =head2 get_constraint
 
 Arguments: %options
@@ -993,7 +1050,7 @@ Return Value: $bool
 When true; elements, fieldsets and blocks will not be given DOM id's, unless 
 explicitly set with L<attributes|HTML::Widget::Accessor/attributes>.
 
-    $element->attributes->{id} = 'my_id'; 
+    $w->element( 'Textfield', 'foo', {id => 'my_id'} )
 
 The form itself will always be given an L</id>, which is C<widget> by default.
 
@@ -1074,6 +1131,23 @@ sub get_filters {
     }
 
     return @{ $self->{_filters} };
+}
+
+=head2 get_filters_ref
+
+Arguments: %options
+
+Return Value: \@filters
+
+Accepts the same arguments as L</get_filters>, but returns an arrayref 
+of results instead of a list.
+
+=cut
+
+sub get_filters_ref {
+    my $self = shift;
+
+    return [ $self->get_filters(@_) ];
 }
 
 =head2 get_filter

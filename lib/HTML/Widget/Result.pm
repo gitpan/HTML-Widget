@@ -63,7 +63,7 @@ sub as_xml {
     my $element_container_class = $self->{element_container_class};
 
     my $c = HTML::Element->new( $self->container );
-    $self->attributes( {} ) unless $self->attributes;
+
     $c->attr( $_ => ${ $self->attributes }{$_} )
         for ( keys %{ $self->attributes } );
 
@@ -129,19 +129,22 @@ sub errors {
     return @$errors;
 }
 
-=head2 element
-
 =head2 elements
 
-Arguments: $name
+=head2 element
+
+Arguments: $name (optional)
 
 Return Value: @elements
 
-Returns a L<HTML::Widget::Container> object for element
-or a list of L<HTML::Widget::Container> objects for form.
+If C<$name> argument is supplied, returns a L<HTML::Widget::Container> 
+object for the first element matching C<$name>. Otherwise, returns a list 
+of L<HTML::Widget::Container> objects for all elements.
 
-    my @form = $f->element;
-    my $age  = $f->element('age');
+    my @form = $f->elements;
+    my $age  = $f->elements('age');
+
+L</element> is an alias for L</elements>.
 
 =cut
 
@@ -159,6 +162,23 @@ sub elements {
 
     return $self->_get_elements( $self->{_elements}, $params,
         $self->{element_container_class}, $name );
+}
+
+=head2 elements_ref
+
+Arguments: $name (optional)
+
+Return Value: \@elements
+
+Accepts the same arguments as L</elements>, but returns an arrayref 
+of results instead of a list.
+
+=cut
+
+sub elements_ref {
+    my $self = shift;
+
+    return [ $self->elements(@_) ];
 }
 
 =head2 find_result_element
@@ -260,7 +280,7 @@ sub _containerize_elements {
         $container->{javascript} ||= '';
         $container->{javascript} .= $javascript->{$ename}
             if ( $ename and $javascript->{$ename} );
-        return $container if $name;
+        return $container if defined $name;
         push @content, $container;
     }
     return @content;

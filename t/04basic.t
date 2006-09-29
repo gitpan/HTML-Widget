@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 36;
 
 use HTML::Widget;
 use lib 't/lib';
@@ -27,7 +27,7 @@ $w->constraint( 'All', 'age', 'name' )->message('Missing value.');
 {
     my $f = $w->result;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><legend id="widget_legend">Fool</legend><label for="widget_age" id="widget_age_label">Age<input class="textfield" id="widget_age" name="age" size="3" type="text" /></label><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset class="widget_fieldset"><legend id="widget_legend">Fool</legend><label for="widget_age" id="widget_age_label">Age<input class="textfield" id="widget_age" name="age" size="3" type="text" /></label><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
@@ -103,7 +103,7 @@ EOF
     );
 
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><legend id="widget_legend">Fool</legend><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age<span class="fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span></label><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset class="widget_fieldset"><legend id="widget_legend">Fool</legend><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age<span class="fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span></label><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name<input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /></label><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
@@ -119,7 +119,7 @@ EOF
 
     my $f = $w2->process;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset id="foo_widget"><legend id="foo_widget_legend">Fool</legend><label for="foo_widget_age" id="foo_widget_age_label">Age<input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /></label><label for="foo_widget_name" id="foo_widget_name_label">Name<input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset" id="foo_widget"><legend id="foo_widget_legend">Fool</legend><label for="foo_widget_age" id="foo_widget_age_label">Age<input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /></label><label for="foo_widget_name" id="foo_widget_name_label">Name<input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset class="widget_fieldset" id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
 EOF
 }
 
@@ -135,6 +135,24 @@ EOF
 
     my $f = $w2->process;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /><input class="textfield" id="foo_baz" name="baz" type="text" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset"><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /><input class="textfield" id="foo_baz" name="baz" type="text" /></fieldset></form>
 EOF
+}
+
+# *_ref methods
+
+{
+    my @element    = $w->get_elements;
+    my @filter     = $w->get_filters;
+    my @constraint = $w->get_constraints;
+
+    is_deeply( $w->get_elements_ref,    \@element,    'get_elements_ref' );
+    is_deeply( $w->get_filters_ref,     \@filter,     'get_filters_ref' );
+    is_deeply( $w->get_constraints_ref, \@constraint, 'get_constraints_ref' );
+
+    my $f = $w->process;
+
+    my @f_element = $f->elements;
+
+    is_deeply( $f->elements_ref, \@f_element, 'elements_ref' );
 }

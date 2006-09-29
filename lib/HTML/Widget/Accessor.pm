@@ -5,8 +5,6 @@ use strict;
 use base 'Class::Accessor::Chained::Fast';
 use Carp qw/croak/;
 
-__PACKAGE__->mk_accessors(qw/attributes/);
-
 *attrs = \&attributes;
 
 =head1 NAME
@@ -27,37 +25,58 @@ Accessor Class.
 
 =head2 attrs
 
+Arguments: %attributes
+
 Arguments: \%attributes
+
+Return Value: $self
+
+Arguments: none
 
 Return Value: \%attributes
 
-The recommended way of setting attributes is to assign directly to a 
-hash-ref key, rather than passing an entire hash-ref, which would overwrite 
-any existing attributes.
+Accepts either a list of key/value pairs, or a hash-ref.
 
-    # recommended - preserves existing key/value's
+    $w->attributes( $key => $value );
+    $w->attributes( { $key => $value } );
+
+Returns the object reference, to allow method chaining.
+
+As of v1.10, passing a hash-ref no longer deletes current 
+attributes, instead the attributes are added to the current attributes 
+hash.
+
+This means the attributes hash-ref can no longer be emptied using 
+C<$w->attributes( { } );>. Instead, you may use 
+C<%{ $w->attributes } = ();>.
+
+As a special case, if no arguments are passed, the return value is a 
+hash-ref of attributes instead of the object reference. This provides 
+backwards compatability to support:
+
     $w->attributes->{key} = $value;
-    
-    # NOT recommended - deletes existing key/value's
-    $w->attributes( { key => $value } );
-
-However, when a value is set in this recommended way, the object is not 
-returned, so cannot be used for further chained method calls.
-
-    $w->element( 'Textfield', 'foo' )
-        ->size( 10 )
-        ->attributes->{'disabled'} = 'disabled';
-    # we cannot chain any further method calls after this
-
-Therefore, to set multiple attributes, it is recommended you store the 
-appropriate object, and call L</attributes> multiple times.
-
-    my $e = $w->element( 'Textfield', 'foo' )->size( 10 );
-    
-    $e->attributes->{'disabled'} = 'disabled';
-    $e->attributes->{'id'}       = 'login';
 
 L</attrs> is an alias for L</attributes>.
+
+=cut
+
+sub attributes {
+    my $self = shift;
+
+    $self->{attributes} = {} if not defined $self->{attributes};
+
+    # special-case to support $w->attrs->{key} = value
+    return $self->{attributes} unless @_;
+
+    my %attrs =
+        ( scalar(@_) == 1 )
+        ? %{ $_[0] }
+        : @_;
+
+    $self->{attributes}->{$_} = $attrs{$_} for keys %attrs;
+
+    return $self;
+}
 
 =head2 mk_attr_accessors
 

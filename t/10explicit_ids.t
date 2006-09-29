@@ -16,7 +16,7 @@ $w->element( 'Textfield', 'bar' )->attributes->{id} = 'my_bar';
 {
     my $f = $w->process;
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset><input class="textfield" name="foo" type="text" /><input class="textfield" id="my_bar" name="bar" type="text" /></fieldset></form>
+<form id="widget" method="post"><fieldset class="widget_fieldset"><input class="textfield" name="foo" type="text" /><input class="textfield" id="my_bar" name="bar" type="text" /></fieldset></form>
 EOF
 }
 
@@ -32,6 +32,6 @@ EOF
 
     my $f = $w->process($query);
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form id="my_form" method="post"><fieldset><input class="textfield" name="foo" type="text" value="yada" /><input class="textfield" id="my_bar" name="bar" type="text" value="23" /></fieldset></form>
+<form id="my_form" method="post"><fieldset class="widget_fieldset"><input class="textfield" name="foo" type="text" value="yada" /><input class="textfield" id="my_bar" name="bar" type="text" value="23" /></fieldset></form>
 EOF
 }

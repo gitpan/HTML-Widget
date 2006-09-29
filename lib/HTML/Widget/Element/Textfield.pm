@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Element';
 
-__PACKAGE__->mk_accessors(qw/comment label value/);
+__PACKAGE__->mk_accessors(qw/comment label value retain_default/);
 __PACKAGE__->mk_attr_accessors(qw/size maxlength/);
 
 =head1 NAME
@@ -26,6 +26,12 @@ Textfield Element.
 
 =head1 METHODS
 
+=head2 retain_default
+
+If true, overrides the default behaviour, so that after a field is missing 
+from the form submission, the xml output will contain the default value, 
+rather than be empty.
+
 =head2 containerize
 
 =cut
@@ -33,7 +39,9 @@ Textfield Element.
 sub containerize {
     my ( $self, $w, $value, $errors, $args ) = @_;
 
-    $value = $self->value if ( not defined $value ) and not $args->{submitted};
+    $value = $self->value
+        if ( not defined $value )
+        and $self->retain_default || not $args->{submitted};
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 

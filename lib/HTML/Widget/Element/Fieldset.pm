@@ -29,7 +29,7 @@ other Elements.
 =cut
 
 sub new {
-    return shift->NEXT::new(@_)->type('fieldset');
+    return shift->NEXT::new(@_)->type('fieldset')->class('widget_fieldset');
 }
 
 =head2 legend

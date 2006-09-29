@@ -55,7 +55,7 @@ $w->constraint( 'All', 'age', 'name' )->message('Missing value.');
 {
     my $f = $w->result;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><label for="widget_age" id="widget_age_label">Age</label><br /><input class="textfield" id="widget_age" name="age" size="3" type="text" /><label for="widget_name" id="widget_name_label">Name</label><br /><input class="textfield" id="widget_name" name="name" size="60" type="text" /><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset class="widget_fieldset"><label for="widget_age" id="widget_age_label">Age</label><br /><input class="textfield" id="widget_age" name="age" size="3" type="text" /><label for="widget_name" id="widget_name_label">Name</label><br /><input class="textfield" id="widget_name" name="name" size="60" type="text" /><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
@@ -142,7 +142,7 @@ EOF
     );
 
     is( "$f", <<EOF, 'XML output is filled out form' );
-<form action="/foo/bar" id="widget" method="post"><fieldset><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age</label><br /><span class="custom_fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name</label><br /><input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo/bar" id="widget" method="post"><fieldset class="widget_fieldset"><label class="labels_with_errors" for="widget_age" id="widget_age_label">Age</label><br /><span class="custom_fields_with_errors"><input class="textfield" id="widget_age" name="age" size="3" type="text" value="23" /></span><span class="error_messages" id="widget_age_errors"><span class="regex_errors" id="widget_age_error_regex">Contains digit characters.</span></span><label for="widget_name" id="widget_name_label">Name</label><br /><input class="textfield" id="widget_name" name="name" size="60" type="text" value="sri" /><input class="submit" id="widget_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }
 
@@ -158,7 +158,7 @@ EOF
 
     my $f = $w2->process;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset id="foo_widget"><label for="foo_widget_age" id="foo_widget_age_label">Age</label><br /><input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /><label for="foo_widget_name" id="foo_widget_name_label">Name</label><br /><input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset" id="foo_widget"><label for="foo_widget_age" id="foo_widget_age_label">Age</label><br /><input class="textfield" id="foo_widget_age" name="age" size="3" type="text" /><label for="foo_widget_name" id="foo_widget_name_label">Name</label><br /><input class="textfield" id="foo_widget_name" name="name" size="60" type="text" /><input class="submit" id="foo_widget_ok" name="ok" type="submit" value="OK" /></fieldset><fieldset class="widget_fieldset" id="foo_bar"><input class="textfield" id="foo_bar_baz" name="baz" type="text" /></fieldset></form>
 EOF
 }
 
@@ -174,7 +174,7 @@ EOF
 
     my $f = $w2->process;
     is( $f->as_xml, <<EOF, 'XML output is form' );
-<form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age</label><br /><input class="textfield" id="foo_age" name="age" size="3" type="text" /><label for="foo_name" id="foo_name_label">Name</label><br /><input class="textfield" id="foo_name" name="name" size="60" type="text" /><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /><input class="textfield" id="foo_baz" name="baz" type="text" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset"><label for="foo_age" id="foo_age_label">Age</label><br /><input class="textfield" id="foo_age" name="age" size="3" type="text" /><label for="foo_name" id="foo_name_label">Name</label><br /><input class="textfield" id="foo_name" name="name" size="60" type="text" /><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /><input class="textfield" id="foo_baz" name="baz" type="text" /></fieldset></form>
 EOF
 }
 
@@ -191,19 +191,19 @@ EOF
 
     is( $f->as_xml,
         <<EOF, 'Output is sane before $w->element_container_class' );
-<form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset"><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 
     $w2->element_container_class('TestContainer');
     $f = $w2->process;
     is( $f->as_xml,
         <<EOF, '$w2->element_container_class changes output for that widget' );
-<form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age</label><br /><input class="textfield" id="foo_age" name="age" size="3" type="text" /><label for="foo_name" id="foo_name_label">Name</label><br /><input class="textfield" id="foo_name" name="name" size="60" type="text" /><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset"><label for="foo_age" id="foo_age_label">Age</label><br /><input class="textfield" id="foo_age" name="age" size="3" type="text" /><label for="foo_name" id="foo_name_label">Name</label><br /><input class="textfield" id="foo_name" name="name" size="60" type="text" /><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 
     $f = $w->name('foo')->action('/foo')->process;
     is( $f->as_xml,
         <<EOF, '$w2->element_container_class doesnt change output for $w->process' );
-<form action="/foo" id="foo" method="post"><fieldset><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
+<form action="/foo" id="foo" method="post"><fieldset class="widget_fieldset"><label for="foo_age" id="foo_age_label">Age<input class="textfield" id="foo_age" name="age" size="3" type="text" /></label><label for="foo_name" id="foo_name_label">Name<input class="textfield" id="foo_name" name="name" size="60" type="text" /></label><input class="submit" id="foo_ok" name="ok" type="submit" value="OK" /></fieldset></form>
 EOF
 }

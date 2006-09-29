@@ -59,11 +59,14 @@ sub as_xml {
 
 Arguments: $element
 
+Return Value: @elements
+
 Convert $element to L<HTML::Element> object. Accepts arrayref.
 
-Most of the time if you wish to change the rendering behaviour of 
-HTML::Widget, you specify L<HTML::Widget::Element/container_class> 
-to a custom class which just overrides this function.
+If you wish to change the rendering behaviour of HTML::Widget; specifically, 
+the handling of elements which are array-refs, you can specify 
+L<HTML::Widget::Element/container_class> to a custom class which just 
+overrides this function.
 
 =cut
 
@@ -71,27 +74,114 @@ sub _build_element {
     my ( $self, $element ) = @_;
 
     return () unless $element;
+
     if ( ref $element eq 'ARRAY' ) {
         return map { $self->_build_element($_) } @{$element};
     }
-    my $e = $element->clone;
-    my $class = $e->attr('class') || '';
-    if ( $self->error && $e->tag eq 'input' ) {
-        $e = HTML::Element->new( 'span', class => 'fields_with_errors' )
-            ->push_content($e);
+
+    return $self->build_single_element( $element->clone );
+}
+
+=head2 build_single_element
+
+Arguments: $element
+
+Return Value: $element
+
+Convert $element to L<HTML::Element> object.
+
+Called by L</_build_element>.
+
+If you wish to change the rendering behaviour of HTML::Widget; specifically, 
+the handling of an individual element, you can override this function.
+
+=cut
+
+sub build_single_element {
+    my ( $self, $element ) = @_;
+
+    my $class = $element->attr('class') || '';
+
+    $element = $self->build_element_error($element);
+
+    $element = $self->build_element_label( $element, $class );
+
+    return $element;
+}
+
+=head2 build_element_error
+
+Arguments: $element
+
+Return Value: $element
+
+Called by L</build_single_element>.
+
+If you wish to change how an error is rendered, override this function.
+
+=cut
+
+sub build_element_error {
+    my ( $self, $element ) = @_;
+
+    if ( $self->error && $element->tag eq 'input' ) {
+        $element = HTML::Element->new( 'span', class => 'fields_with_errors' )
+            ->push_content($element);
     }
 
-    if ( $self->label ) {
-        my $l = $self->label->clone;
+    return $element;
+}
+
+=head2 build_element_label
+
+Arguments: $element, $class
+
+Return Value: $element
+
+Called by L</build_single_element>.
+
+If you wish to change how an element's label is rendered, override this 
+function.
+
+The $class argument is the original class of the element, before 
+L</build_element_error> was called.
+
+=cut
+
+sub build_element_label {
+    my ( $self, $element, $class ) = @_;
+
+    return $element unless defined $self->label;
+
+    my $l = $self->label->clone;
+    my $radiogroup;
+
+    if ( $class eq 'radiogroup_fieldset' ) {
+        $element->unshift_content($l);
+        $radiogroup = 1;
+    }
+    elsif ( $self->error && $element->tag eq 'span' ) {
+
+        # it might still be a radiogroup wrapped in an error span
+        for my $elem ( $element->content_refs_list ) {
+            next unless ref $$elem;
+            if ( $$elem->attr('class') eq 'radiogroup_fieldset' ) {
+                $$elem->unshift_content($l);
+                $radiogroup = 1;
+            }
+        }
+    }
+
+    if ( !$radiogroup ) {
 
         # Do we prepend or append input to label?
-        $e =
+        $element =
             ( $class eq 'checkbox' or $class eq 'radio' )
-            ? $l->unshift_content($e)
-            : $l->push_content($e);
+            ? $l->unshift_content($element)
+            : $l->push_content($element);
     }
 
-    return $e ? ($e) : ();
+    return $element;
 }
 
 =head2 as_list

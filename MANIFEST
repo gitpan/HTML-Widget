@@ -86,12 +86,14 @@ t/06bugs_select_zero_key_constraint.t
 t/06bugs_value_empty_string.t
 t/06bugs_value_no_default.t
 t/06bugs_value_zero.t
+t/06bugs_widget_name_zero.t
 t/06bugs_zero_value_xml.t
 t/06bugs_zero_xml.t
 t/07custom_render.t
 t/08empty_errors.t
 t/09nested_embed.t
 t/10explicit_ids.t
+t/attributes.t
 t/constraint_all.t
 t/constraint_allornone.t
 t/constraint_any.t
@@ -153,4 +155,5 @@ t/lib/HTMLWidget/CustomFilter.pm
 t/lib/HTMLWidget/TestLib.pm
 t/lib/TestContainer.pm
 t/result_add_error.t
+t/retain_default.t
 t/submitted.t

@@ -5,7 +5,7 @@ use strict;
 use base 'HTML::Widget::Element';
 use NEXT;
 
-__PACKAGE__->mk_accessors(qw/value content type/);
+__PACKAGE__->mk_accessors(qw/value content type retain_default/);
 
 # alias
 *label = \&value;
@@ -48,6 +48,12 @@ Only used if L</content> is set.
 
 Defaults to C<button>. Also valid is C<submit> and C<reset>.
 
+=head2 retain_default
+
+If true, overrides the default behaviour, so that after a field is missing 
+from the form submission, the xml output will contain the default value, 
+rather than be empty.
+
 =head2 render
 
 =head2 containerize
@@ -59,7 +65,10 @@ sub containerize {
 
     $value = ref $value eq 'ARRAY' ? shift @$value : $value;
 
-    $value = $self->value if ( not defined $value ) and not $args->{submitted};
+    $value = $self->value
+        if ( not defined $value )
+        and $self->retain_default || not $args->{submitted};
+
     my $i;
     if ( defined $self->content && length $self->content ) {
         my $type = $self->type() if defined $self->type;

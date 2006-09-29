@@ -5,7 +5,7 @@ use strict;
 use base 'HTML::Widget::Element';
 use NEXT;
 
-__PACKAGE__->mk_accessors(qw/comment checked label value/);
+__PACKAGE__->mk_accessors(qw/comment checked label value retain_default/);
 
 =head1 NAME
 
@@ -24,6 +24,12 @@ HTML::Widget::Element::Radio - Radio Element
 Radio Element.
 
 =head1 METHODS
+
+=head2 retain_default
+
+If true, overrides the default behaviour, so that after a field is missing 
+from the form submission, the xml output will contain the default value, 
+rather than be empty.
 
 =head2 new
 
@@ -61,7 +67,6 @@ sub containerize {
         $w->{_stash}->{radio} ||= {};
         my $num = ++$w->{_stash}->{radio}->{$name};
         my $id = $self->id( $w, "$name\_$num" );
-        $self->attributes( {} ) unless $self->attributes;
         $self->attributes->{id} ||= $id;
     }
 
@@ -71,7 +76,11 @@ sub containerize {
         ? 'checked'
         : undef
         : undef;
-    if ( !defined $value && !$args->{submitted} && $self->checked ) {
+
+    if (   !defined $value
+        && ( $self->retain_default || !$args->{submitted} )
+        && $self->checked )
+    {
         $checked = 'checked';
     }
     $value = $self->value;

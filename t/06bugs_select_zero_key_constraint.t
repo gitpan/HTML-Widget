@@ -9,8 +9,7 @@ use HTMLWidget::TestLib;
 
 my $w = HTML::Widget->new;
 
-$w->element( 'Select', 'foo' )
-    ->options( 1 => 'yes', 0 =>'no' )
+$w->element( 'Select', 'foo' )->options( 1 => 'yes', 0 => 'no' )
     ->constrain_options(1);
 
 my $f = $w->process();

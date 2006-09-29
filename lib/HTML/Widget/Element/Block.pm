@@ -68,7 +68,7 @@ sub block_container {
     $file =~ s{::}{/}g;
     eval { require $file };
     die "Unable to load block container class $class: $@" if $@;
-    
+
     return $class->new( { passive => $self->passive, %$attributes } );
 }
 

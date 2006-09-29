@@ -52,6 +52,6 @@ $w1->element( 'Textfield', '0' );
     ok( !$result->has_errors(0), '0 not error' );
 
     is( "$result", <<EOF, 'XML output is filled out form' );
-<form id="widget" method="post"><fieldset id="widget_embed"><input class="textfield" id="widget_embed_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_embed_0" name="0" type="text" value="a" /></fieldset></form>
+<form id="widget" method="post"><fieldset class="widget_fieldset" id="widget_embed"><input class="textfield" id="widget_embed_foo" name="foo" type="text" value="yada" /><input class="textfield" id="widget_embed_0" name="0" type="text" value="a" /></fieldset></form>
 EOF
 }
