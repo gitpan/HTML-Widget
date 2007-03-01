@@ -20,9 +20,9 @@ $w->element( 'RadioGroup', 'bar' )->values( [ 3, 4 ] )->constrain_values(1);
 
     my @constraints = $w->get_constraints;
     cmp_ok( scalar(@constraints), '==', 2, 'Two implicit IN constraints' );
-    cmp_ok( scalar( @{ $constraints[0]->_in() } ),
+    cmp_ok( scalar( @{ $constraints[0]->in } ),
         '==', 3, 'Three keys for constraint 0' );
-    cmp_ok( scalar( @{ $constraints[1]->_in() } ),
+    cmp_ok( scalar( @{ $constraints[1]->in } ),
         '==', 2, 'Two keys for constraint 1' );
 
     ok( $f->valid('foo') );

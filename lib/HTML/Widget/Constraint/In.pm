@@ -4,7 +4,7 @@ use base 'HTML::Widget::Constraint';
 use strict;
 use warnings;
 
-__PACKAGE__->mk_accessors(qw/_in _in_hash/);
+__PACKAGE__->mk_accessors(qw/in/);
 
 =head1 NAME
 
@@ -18,17 +18,6 @@ HTML::Widget::Constraint::In - Check that a value is one of a current set.
 
 =head1 METHODS
 
-=head2 new
-
-=cut
-
-sub new {
-    my $self = shift->SUPER::new(@_);
-
-    $self->_in_hash( {} );
-
-    $self;
-}
 
 =head2 validate
 
@@ -37,7 +26,15 @@ sub new {
 sub validate {
     my ( $self, $value ) = @_;
 
-    exists $self->_in_hash->{$value};
+    # Return valid on an empty value
+    return 1 unless defined($value);
+    return 1 if ( $value eq '' );
+
+    my $in = $self->in;
+
+    my %in = map { $_ => 1 } ref $in ? @{ $self->in } : $in;
+
+    return exists $in{$value};
 }
 
 =head2 in
@@ -47,17 +44,6 @@ Arguments: @values
 A list of valid values for that element.
 
 =cut
-
-sub in {
-    my ( $self, @values ) = @_;
-
-    if (@values) {
-        $self->_in_hash( { map { $_ => undef } @values } );
-        $self->_in(@values);
-    }
-
-    return $self->_in();
-}
 
 1;
 

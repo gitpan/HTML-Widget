@@ -4,8 +4,11 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Element';
 use NEXT;
+use Carp qw/croak/;
 
 __PACKAGE__->mk_accessors(qw/content/);
+
+*elem = \&element;
 
 =head1 NAME
 
@@ -27,25 +30,50 @@ See L<HTML::Widget::Element::Block> for documentation of most methods.
 
 =head2 new
 
+Sets L<HTML::Widget::Element/allow_filter> to false, so that filters added 
+by C<< $widget->filter_all >> won't be applied to Span elements.
+
+Sets L<HTML::Widget::Element/allow_constraint> to false, so that constraints 
+added by C<< $widget->constraint_all >> won't be applied to Span elements.
+
 =cut
 
 sub new {
-    return shift->NEXT::new(@_)->content( [] );
+    my $self = shift->NEXT::new(@_);
+
+    $self->allow_filter(0)->allow_constraint(0)->content( [] );
+
+    return $self;
 }
 
-=head2 element 
+=head2 elem
+
+=head2 element
+
+Arguments: $type, $name, \%attributes
+
+Return Value: $element
+
+See L<HTML::Widget/element> for details.
 
 =cut
 
 sub element {
-    my ( $self, $type, $name ) = @_;
+    my ( $self, $type, $name, $attrs ) = @_;
 
     my $abs = $type =~ s/^\+//;
     $type = "HTML::Widget::Element::$type" unless $abs;
 
     my $element = HTML::Widget->_instantiate( $type, { name => $name } );
 
+    $element->{_anonymous} = 1 if !defined $name;
+
     $self->push_content($element);
+
+    if ( defined $attrs ) {
+        eval { $element->attributes->{$_} = $attrs->{$_} for keys %$attrs; };
+        croak "attributes argument must be a hash-reference: $@" if $@;
+    }
 
     return $element;
 }

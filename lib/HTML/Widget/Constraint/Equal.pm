@@ -25,16 +25,32 @@ with the All constraint to make sure all elements are equal.
 
 sub process {
     my ( $self, $w, $params ) = @_;
-    my $results = [];
-    my $equal   = $params->{ ${ $self->names }[0] };
+    my $results  = [];
+    my $equal    = $params->{ ${ $self->names }[0] };
+    my $failures = 0;
+
     for my $name ( @{ $self->names } ) {
-        push @$results,
-            HTML::Widget::Error->new(
-            { name => $name, message => $self->mk_message } )
-            if $params->{$name} ne $equal;
+        $failures++ if $params->{$name} ne $equal;
     }
+
+    if ($failures) {
+        for my $name ( @{ $self->names } ) {
+            push @$results, HTML::Widget::Error->new(
+                { name => $name, message => $self->mk_message } );
+        }
+    }
+
     return $results;
 }
+
+=head2 render_errors
+
+Arguments: @names
+
+A list of element names for which an error should be displayed.
+
+If this is not set, the default behaviour is for the error to be displayed 
+for all of the Constraint's named elements.  
 
 =head1 AUTHOR
 

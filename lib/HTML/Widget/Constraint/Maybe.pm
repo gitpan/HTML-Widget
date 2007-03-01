@@ -6,15 +6,11 @@ use base 'HTML::Widget::Constraint';
 
 =head1 NAME
 
-HTML::Widget::Constraint::Maybe - Maybe Constraint
-
-=head1 SYNOPSIS
-
-    my $c = $widget->constraint( 'Maybe', 'foo', 'bar' );
+HTML::Widget::Constraint::Maybe - Deprecated
 
 =head1 DESCRIPTION
 
-Maybe Constraint.
+Deprecated - does nothing.
 
 =head1 AUTHOR
 

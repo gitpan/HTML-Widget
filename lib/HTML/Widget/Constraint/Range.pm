@@ -50,10 +50,10 @@ sub validate {
 
     $failed++ if !looks_like_number($value);
 
-    if ( !$failed && $minimum ) {
+    if ( !$failed && defined $minimum ) {
         $failed++ unless ( $value >= $minimum );
     }
-    if ( !$failed && $maximum ) {
+    if ( !$failed && defined $maximum ) {
         $failed++ unless ( $value <= $maximum );
     }
     return !$failed;

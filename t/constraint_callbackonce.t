@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 23;
 
 use HTML::Widget;
 use lib 't/lib';
@@ -13,7 +13,7 @@ our $counter;
 $w->element( 'Textfield', 'foo' );
 $w->element( 'Textfield', 'bar' );
 
-$w->constraint( 'CallbackOnce', 'foo', 'bar' )
+my $constraint = $w->constraint( 'CallbackOnce', 'foo', 'bar' )
     ->callback( sub { $counter++; return 1 if $_[0] && $_[1] } );
 
 # Valid
@@ -85,4 +85,33 @@ $w->constraint( 'CallbackOnce', 'foo', 'bar' )
     ok( $f->errors('bar'), 'bar has errors' );
 
     is( $counter, 1 );
+}
+
+# Display one error on multiple failure
+{
+    $constraint->render_errors(qw/ foo /);
+
+    my $query = HTMLWidget::TestLib->mock_query( { foo => [ '', '' ] } );
+
+    my $f = $w->process($query);
+
+    ok( $f->errors('foo'), 'foo has errors' );
+    ok( $f->errors('bar'), 'bar has errors' );
+
+    ok( !$f->valid('foo'), 'foo is not valid' );
+    ok( !$f->valid('bar'), 'bar is not valid' );
+}
+
+# Display both errors (explicitly) on multiple failure
+{
+    $constraint->render_errors(qw/ foo bar /);
+    my $query = HTMLWidget::TestLib->mock_query( { foo => [ '', '' ] } );
+
+    my $f = $w->process($query);
+
+    ok( $f->errors('foo'), 'foo has errors' );
+    ok( $f->errors('bar'), 'bar has errors' );
+
+    ok( !$f->valid('foo'), 'foo is not valid' );
+    ok( !$f->valid('bar'), 'bar is not valid' );
 }

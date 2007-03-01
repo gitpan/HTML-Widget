@@ -1,5 +1,40 @@
 This file documents the revision history for Perl extension HTML::Widget.
 
+1.11 2007-03-01
+
+        - New Bool constraint.
+        - New SingleValue constraint.
+        - New $w->filter_all() and $w->constraint_all() methods add the 
+          named filters/constraints to all current form elements.
+        - $w->find_elements() now supports the same arguments as 
+          $w->get_elements().
+        - New render_errors() method on constraints, accepts a list of 
+          element names for which errors should be displayed by $r->as_xml.
+        - Elements are allowed to have no name. No id or name will be 
+          displayed in the xml output	.
+        - When an Equal constraint fails, the first named element's value is 
+          no longer considered valid.
+        - All elements associated with a failing Equal constraint receive an 
+          error. Use render_errors() to override this behaviour.
+        - New HTML::Widget::Error method no_render(), used internally by
+          $constraint->render_errors().
+        - New F.A.Q. documentation section.
+        - $result->param() carps if called with more than 1 argument (it's 
+          documented readonly).
+        - element() called on a block element now accepts the same 
+          \%attributes argument as $widget->element().
+        - Submit and Reset elements now inherit from Button element, so they 
+          share the same methods (value, content, src, type).
+        - Fixed Range constraint bug when min/max is 0 (zero).
+        - Fixed $widget->get_elements() bug, now both 'name' and 'type' 
+          arguments can be used together to limit the elements returned.
+        - In constraint fixed so empty/missing values pass.
+        - HTML::Element now escapes unicode properly - require v3.22 and 
+          stop skipping test
+        - HTMLEscape filter test skipped due to incompatible changes in 
+          HTML::Element
+        - Deprecated Maybe constraint
+
 1.10 2006-09-29
         - RadioGroup elements are now wrapped in a fieldset tag.
         - HTML::Widget->new() and $w->element() now accepts a hash-ref of 

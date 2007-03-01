@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw/name message type/);
+__PACKAGE__->mk_accessors(qw/name message type no_render/);
 
 use overload '""' => sub { return shift->message }, fallback => 1;
 
@@ -37,6 +37,14 @@ Return Value: $name
 Arguments: $message
 
 Return Value: $message
+
+=head2 no_render
+
+Arguments: $bool
+
+If true, this error will not be displayed by C<< $result->as_xml >>.
+
+This is used internally used by L<HTML::Widget::Constraint/render_errors>.
 
 =head2 type
 

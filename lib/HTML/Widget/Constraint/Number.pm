@@ -17,8 +17,6 @@ HTML::Widget::Constraint::Number - Number Constraint
 
 Number Constraint.
 
-Requires L<Scalar::Util>.
-
 =head1 METHODS
 
 =head2 validate

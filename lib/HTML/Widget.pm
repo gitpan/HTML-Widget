@@ -26,19 +26,29 @@ __PACKAGE__->mk_attr_accessors(qw/action enctype method/);
 
 use overload '""' => sub { return shift->attributes->{id} }, fallback => 1;
 
-*const  = \&constraint;
-*elem   = \&element;
-*name   = \&id;
-*tag    = \&container;
-*subtag = \&subcontainer;
-*result = \&process;
-*indi   = \&indicator;
+*const         = \&constraint;
+*elem          = \&element;
+*name          = \&id;
+*tag           = \&container;
+*subtag        = \&subcontainer;
+*result        = \&process;
+*indi          = \&indicator;
+*constrain_all = \*constraint_all;
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 NAME
 
 HTML::Widget - HTML Widget And Validation Framework
+
+=head1 NOTE
+
+L<HTML::Widget> is no longer under active development and the current 
+maintainers are instead pursuing an intended replacement (see the 
+L<mailing-list|/SUPPORT> for details).
+
+Volunteer maintainers / developers for L<HTML::Widget>, please contact 
+the L<mailing-list|/SUPPORT>.
 
 =head1 SYNOPSIS
 
@@ -195,7 +205,7 @@ Return Value: $widget
 Create a new HTML::Widget object. The name parameter will be used as the 
 id of the form created by the to_xml method.
 
-The C<attributes> argument is equivalent to using the l</attributes> 
+The C<attributes> argument is equivalent to using the L</attributes> 
 method.
 
 =cut
@@ -209,7 +219,7 @@ sub new {
     $self->name( defined $name ? $name : 'widget' );
 
     if ( defined $attrs ) {
-        die 'attributes argument must be a hash-reference'
+        croak 'attributes argument must be a hash-reference'
             if ref($attrs) ne 'HASH';
 
         $self->attributes->{$_} = $attrs->{$_} for keys %$attrs;
@@ -253,8 +263,8 @@ attributes, instead the attributes are added to the current attributes
 hash.
 
 This means the attributes hash-ref can no longer be emptied using 
-C<$w->attributes( { } );>. Instead, you may use 
-C<%{ $w->attributes } = ();>.
+C<< $w->attributes( { } ); >>. Instead, you may use 
+C<< %{ $w->attributes } = (); >>.
 
 As a special case, if no arguments are passed, the return value is a 
 hash-ref of attributes instead of the object reference. This provides 
@@ -284,7 +294,7 @@ Get/Set the container_class override for all elements in this widget. If set to
 non-zero value, process will call $element->container_class($class_name) for
 each element. Defaults to not set.
 
-See L<HTML::Widget::Element::container_class>.
+See L<HTML::Widget::Element/container_class>.
 
 =head2 elem
 
@@ -294,11 +304,11 @@ Arguments: $type, $name, \%attributes
 
 Return Value: $element
 
-Add a new element to the Widget. Each element must be given at least a type, 
-and a name. The name is used for an id attribute on the field created for the 
-element. An L<HTML::Widget::Element> object is returned, which can be used to
-set further attributes, please see the individual element classes for the 
-methods specific to each one.
+Add a new element to the Widget. Each element must be given at least a type. 
+The name is used to generate an id attribute on the tag created for the 
+element, and for form-specific elements is used as the name attribute. The 
+returned element object can be used to set further attributes, please see 
+the individual element classes for the methods specific to each one.
 
 The C<attributes> argument is equivalent to using the 
 L<attributes|HTML::Widget::Element/attributes> method.
@@ -311,6 +321,15 @@ you can fully qualify the name by using a unary plus:
 The type can be one of the following:
 
 =over 4
+
+=item L<HTML::Widget::Element::Block>
+
+    my $e = $widget->element('Block');
+
+Add a Block element, which by default will be rendered as a C<DIV>.
+
+    my $e = $widget->element('Block');
+    $e->type('img');
 
 =item L<HTML::Widget::Element::Button>
 
@@ -413,7 +432,7 @@ IDs, and the values are the strings displayed in the dropdown.
 
 =item L<HTML::Widget::Element::Span>
 
-    my $e = $widget->element( 'Span', 'foo' );
+    my $e = $widget->element( 'Span' );
     $e->content('bar');
 
 Create a simple span tag, containing the given content. Spans cannot be
@@ -489,6 +508,8 @@ sub element {
 
     my $element = $self->_instantiate( $type, { name => $name } );
 
+    $element->{_anonymous} = 1 if !defined $name;
+
     if ( $element->isa('HTML::Widget::Element::Block')
         and not $element->{_pseudo_block} )
     {
@@ -505,7 +526,7 @@ sub element {
     }
 
     if ( defined $attrs ) {
-        die 'attributes argument must be a hash-reference'
+        croak 'attributes argument must be a hash-reference'
             if ref($attrs) ne 'HASH';
 
         $element->attributes->{$_} = $attrs->{$_} for keys %$attrs;
@@ -604,15 +625,22 @@ sub get_elements {
     @elements = @{ $self->_first_element->content }
         if $self->implicit_subcontainer;
 
-    if ( exists $opt{type} ) {
-        my $type = "HTML::Widget::Element::$opt{type}";
+    return _search_elements( \%opt, @elements );
+}
 
-        return grep { $_->isa($type) } @elements;
+sub _search_elements {
+    my ( $opt, @elements ) = @_;
+
+    if ( exists $opt->{type} ) {
+        my $type = "HTML::Widget::Element::" . $opt->{type};
+
+        @elements = grep { $_->isa($type) } @elements;
     }
-    elsif ( exists $opt{name} ) {
-        my $name = $opt{name};
 
-        return grep { $_->name eq $name } @elements;
+    if ( exists $opt->{name} ) {
+        @elements = grep {
+            defined($_->name) && $_->name eq $opt->{name}
+        } @elements;
     }
 
     return @elements;
@@ -665,7 +693,7 @@ Arguments: %options
 
 Return Value: @elements
 
-Similar to get_elements(), and has the same alternate forms, but performs a
+Similar to L</get_elements>, and accepts the same arguments, but performs a
 recursive search through block-level elements.
 
 =cut
@@ -673,10 +701,9 @@ recursive search through block-level elements.
 sub find_elements {
     my ( $self, %opt ) = @_;
 
-    my @elements;
-    push( @elements, map { $_->find_elements(%opt); } @{ $self->{_elements} } )
-        if $self->{_elements};
-    return @elements;
+    my @elements = map { $_->find_elements } @{ $self->{_elements} };
+
+    return _search_elements( \%opt, @elements );
 }
 
 =head2 const
@@ -694,13 +721,14 @@ returned to allow setting of further attributes to be set. The string 'Not_'
 can be prepended to each type name to negate the effects. Thus checking for a 
 non-integer becomes 'Not_Integer'.
 
-If the constraint starts with a name other than 
+If the constraint package name starts with something other than 
 C<HTML::Widget::Constraint::>, you can fully qualify the name by using a 
 unary plus:
 
     $self->constraint( "+Fully::Qualified::Name", @names );
 
-Constraint checking is done after L<HTML::Widget::Filter>s have been applied.
+Constraint checking is done after all L<HTML::Widget::Filter> have been 
+applied.
 
 @names should contain a list of element names that the constraint applies to. 
 The type of constraint can be one of:
@@ -721,6 +749,12 @@ in the form.
 If any of the fields passed to the "AllOrNone" constraint are filled in, then 
 they all must be filled in.
 
+=item L<HTML::Widget::Constraint::Any>
+
+    my $c = $widget->constraint( 'Any', 'foo', 'bar' );
+
+At least one or more of the fields passed to this constraint must be filled.
+
 =item L<HTML::Widget::Constraint::ASCII>
 
     my $c = $widget->constraint( 'ASCII', 'foo' );
@@ -728,11 +762,12 @@ they all must be filled in.
 The fields passed to this constraint will be checked to make sure their 
 contents contain ASCII characters.
 
-=item L<HTML::Widget::Constraint::Any>
+=item L<HTML::Widget::Constraint::Bool>
 
-    my $c = $widget->constraint( 'Any', 'foo', 'bar' );
+    my $c = $widget->constraint( 'Bool', 'foo' );
 
-At least one or more of the fields passed to this constraint must be filled.
+The fields passed to this constraint will be checked to make sure their 
+contents contain a C<1> or C<0>.
 
 =item L<HTML::Widget::Constraint::Callback>
 
@@ -741,14 +776,24 @@ At least one or more of the fields passed to this constraint must be filled.
         return 1;
     });
 
-This constraint allows you to provide your own callback sub for validation.
+This constraint allows you to provide your own callback sub for validation. 
+The callback sub is called once for each submitted value of each named field.
+
+=item L<HTML::Widget::Constraint::CallbackOnce>
+
+    my $c = $widget->constraint( 'CallbackOnce', 'foo' )->callback(sub { 
+        my $value=shift;
+        return 1;
+    });
+
+This constraint allows you to provide your own callback sub for validation. 
+The callback sub is called once per call of L</process>.
 
 =item L<HTML::Widget::Constraint::Date>
 
     my $c = $widget->constraint( 'Date', 'year', 'month', 'day' );
 
-This constraint ensures that the three fields passed in are a valid date. The
-L<Date::Calc> module is required.
+This constraint ensures that the three fields passed in are a valid date.
 
 =item L<HTML::Widget::Constraint::DateTime>
 
@@ -757,7 +802,7 @@ L<Date::Calc> module is required.
         'minute', 'second' );
 
 This constraint ensures that the six fields passed in are a valid date and 
-time. The L<Date::Calc> module is required.
+time.
 
 =item L<HTML::Widget::Constraint::DependOn>
 
@@ -776,6 +821,7 @@ Check that the field given contains a valid email address, according to RFC
 =item L<HTML::Widget::Constraint::Equal>
 
     my $c = $widget->constraint( 'Equal', 'foo', 'bar' );
+    $c->render_errors( 'foo' );
 
 The fields passed to this constraint must contain the same information, or
 be empty.
@@ -809,9 +855,11 @@ Check that the field contents are an integer.
 Ensure that the contents of the field are at least $min long, and no longer
 than $max.
 
-=item L<HTML::Widget::Constraint::Maybe>
+=item L<HTML::Widget::Constraint::Number>
 
-    my $c = $widget->constraint( 'Maybe', 'foo', 'bar' );
+    my $c = $widget->constraint( 'Number', 'foo' );
+
+Ensure that the content of the field is a number.
 
 =item L<HTML::Widget::Constraint::Printable>
 
@@ -845,8 +893,7 @@ The field must only contain characters in \w. i.e. [a-zaZ0-9_]
 
     my $c = $widget->constraint( 'Time', 'hour', 'minute', 'second' );
 
-The three fields passed to this constraint must constitute a valid time. The
-L<Date::Calc> module is required.
+The three fields passed to this constraint must constitute a valid time.
 
 =back
 
@@ -870,6 +917,42 @@ sub constraint {
     $constraint->not($not);
     push @{ $self->{_constraints} }, $constraint;
     return $constraint;
+}
+
+=head2 constraint_all
+
+=head2 constrain_all
+
+Arguments: @constraint_types
+
+Return Value: @constraints
+
+    $w->element( Textfield => 'name' );
+    $w->element( Textfield => 'password' );
+    $w->constraint_all( 'All' );
+
+For each named type, add a constraint to all elements currently defined.
+
+Does not add a constraint for elements which return false for 
+L<HTML::Widget::Element/allow_constraint>; this includes 
+L<HTML::Widget::Element::Span> and any element that inherits from 
+L<HTML::Widget::Element::Block>.
+
+=cut
+
+sub constraint_all {
+    my $self = shift;
+    my @constraint;
+
+    for my $element ( $self->find_elements ) {
+        if ( $element->allow_constraint ) {
+            for (@_) {
+                push @constraint, $self->constraint( $_, $element->name );
+            }
+        }
+    }
+
+    return @constraint;
 }
 
 =head2 get_constraints
@@ -927,10 +1010,10 @@ Return Value: $constraint
     
     my $constraint = $self->get_constraint( type => 'Integer' );
 
-Similar to get_constraints(), but only returns the first constraint in the 
+Similar to L</get_constraints>, but only returns the first constraint in the 
 list.
 
-Accepts the same arguments as get_constraints().
+Accepts the same arguments as L</get_constraints>.
 
 =cut
 
@@ -1074,11 +1157,35 @@ There are currently two types of filter:
 
 =over 4
 
-=item L<HTML::Widget::Filter::Whitespace>
+=item L<HTML::Widget::Filter::Callback>
 
-    my $f = $widget->filter( 'Whitespace', 'foo' );
+    my $f = $widget->filter( 'Callback', 'foo' );
+    $f->callback( \&my_callback );
 
-Removes all whitespace from the given field(s).
+Filter given field(s) using a user-defined subroutine.
+
+=item L<HTML::Widget::Filter::HTMLEscape>
+
+    my $f = $widget->filter( 'HTMLEscape', 'foo' );
+
+Escapes HTML entities in the given field(s).
+
+=item L<HTML::Widget::Filter::HTMLStrip>
+
+    my $f = $widget->filter( 'HTMLStrip', 'foo' );
+
+Strips HTML tags from the given field(s).
+
+    my $f = $widget->filter( 'HTMLStrip', 'foo' );
+    $f->allow( 'p', 'br' );
+
+Specify a list of HTML tags which shouldn't be stripped.
+
+=item L<HTML::Widget::Filter::LowerCase>
+
+    my $f = $widget->filter( 'LowerCase', 'foo' );
+
+Make given field(s) all lowercase.
 
 =item L<HTML::Widget::Filter::TrimEdges>
 
@@ -1086,10 +1193,19 @@ Removes all whitespace from the given field(s).
 
 Removes whitespace from the beginning and end of the given field(s).
 
+=item L<HTML::Widget::Filter::UpperCase>
+
+    my $f = $widget->filter( 'UpperCase', 'foo' );
+
+Make given field(s) all uppercase.
+
+=item L<HTML::Widget::Filter::Whitespace>
+
+    my $f = $widget->filter( 'Whitespace', 'foo' );
+
+Removes all whitespace from the given field(s).
+
 =back
-
-
-Returns a L<HTML::Widget::Filter> object.
 
 =cut
 
@@ -1103,6 +1219,40 @@ sub filter {
     $filter->init($self);
     push @{ $self->{_filters} }, $filter;
     return $filter;
+}
+
+=head2 filter_all
+
+Arguments: @filter_types
+
+Return Value: @filters
+
+    $w->element( Textfield => 'name' );
+    $w->element( Textfield => 'age' );
+    $w->filter_all( 'Whitespace' );
+
+For each named type, add a filter to all elements currently defined.
+
+Does not add a filter for elements which return false for 
+C<HTML::Widget::Element/allow_filter>; this includes 
+L<HTML::Widget::Element::Span> and any element that inherits from 
+L<HTML::Widget::Element::Block>.
+
+=cut
+
+sub filter_all {
+    my $self = shift;
+    my @filter;
+
+    for my $element ( $self->find_elements ) {
+        if ( $element->allow_filter ) {
+            for (@_) {
+                push @filter, $self->filter( $_, $element->name );
+            }
+        }
+    }
+
+    return @filter;
 }
 
 =head2 get_filters
@@ -1160,10 +1310,10 @@ Return Value: $filter
     
     my @filters = $self->get_filter( type => 'Integer' );
 
-Similar to get_filters(), but only returns the first filter in the 
+Similar to L</get_filters>, but only returns the first filter in the 
 list.
 
-Accepts the same arguments as get_filters().
+Accepts the same arguments as L</get_filters>.
 
 =cut
 
@@ -1282,9 +1432,9 @@ Arguments: $query, \@uploads
 
 Return Value: $result
 
-After finishing setting up the widget and all its elements, call either 
-process() or result() to create an L<HTML::Widget::Result>. If passed a $query
-it will run filters and validation on the parameters. The Result object can
+After finishing setting up the widget and all its elements, call to create 
+an L<HTML::Widget::Result>. If passed a C<$query> it will run filters and 
+validation on the parameters. The L<Result|HTML::Widget::Result> object can 
 then be used to produce the HTML.
 
 L</result> is an alias for L</process>.
@@ -1349,12 +1499,20 @@ sub process {
         }
         for my $constraint ( @{ $self->{_constraints} } ) {
             my $results = $constraint->process( $self, \%params, $uploads );
+            my $render = $constraint->render_errors;
+            my @render =
+                  ref $render     ? @{$render}
+                : defined $render ? $render
+                :                   ();
+
             for my $result ( @{$results} ) {
                 my $name  = $result->name;
                 my $class = ref $constraint;
                 $class =~ s/^HTML::Widget::Constraint:://;
                 $class =~ s/::/_/g;
                 $result->type($class);
+                $result->no_render(1)
+                    if @render && !grep { $name eq $_ } @render;
                 push @{ $errors->{$name} }, $result;
             }
         }
@@ -1425,6 +1583,55 @@ L<HTML::Widget::Element::Fieldset>.
 
 When C<true>, the top-level widget may not have a L/legend>.
 
+=head1 Frequently Asked Questions (FAQ)
+
+=head2 How do I add an onSubmit handler to my form?
+
+    $widget->attributes( onsubmit => $javascript );
+
+See L<HTML::Widget/attributes>.
+
+=head2 How do I add an onChange handler to my form field?
+
+    $element->attributes( onchange => $javascript );
+
+See L<HTML::Widget::Element/attributes>.
+
+=head2 Element X does not have an accessor for Y!
+
+You can add any arbitrary attributes with 
+L<HTML::Widget::Element/attributes>.
+
+=head2 How can I add a tag which isn't included?
+
+You can either create your own element module files, and use them as you 
+would a standard element, or alternatively...
+
+You can call L<type|HTML::Widget::Element::Block/type> on a 
+L<HTML::Widget::Element::Block> element to change the rendered tag.
+
+    $w->element('Block')->type('br');
+    # will render as
+    <br />
+
+=head2 How can I render some elements in a HTML list?
+
+    my $ul = $w->element('Block')->type('ul');
+    $ul->element('Block')->type('li')
+        ->element( Textfield => foo' );
+    $ul->element('Block')->type('li')
+        ->element( Textfield => 'bar' );
+    
+    # will render as
+    <ul>
+    <li>
+    <input class="textfield" id="widget_foo" name="foo" type="text" />
+    </li>
+    <li>
+    <input class="textfield" id="widget_bar" name="bar" type="text" />
+    </li>
+    </ul>
+
 =head1 SUPPORT
 
 Mailing list:
@@ -1434,7 +1641,7 @@ L<http://lists.rawmode.org/cgi-bin/mailman/listinfo/html-widget>
 =head1 SUBVERSION REPOSITORY
 
 The publicly viewable subversion code repository is at 
-L<http://oook.de/svn/trunk/HTML-Widget/>.
+L<http://dev.catalyst.perl.org/repos/Catalyst/trunk/HTML-Widget/>.
 
 =head1 SEE ALSO
 

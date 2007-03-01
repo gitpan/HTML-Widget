@@ -66,7 +66,7 @@ L</value> is provided as an alias for L</checked>.
 
 =head2 labels
 
-The labels for corresponding l</values>.
+The labels for corresponding L</values>.
 
 =head2 constrain_values
 
@@ -253,7 +253,7 @@ C<label, .radiogroup_fieldset { ... }> definition, or you can change your
 C<fieldset { ... }> definition to C<.widget_fieldset{ ... }> to specifically 
 target any Fieldset elements other than the RadioGroup's.
 
-Previously, if there were any errors, the l<label> tag was given the 
+Previously, if there were any errors, the L<label> tag was given the 
 classname C<labels_with_errors>. Now, if there's errors, the RadioGroup 
 C<fieldset> tag is wrapped in a C<span> tag which is given the classname 
 C<labels_with_errors>. To ensure that any C<labels_with_errors> styles are 

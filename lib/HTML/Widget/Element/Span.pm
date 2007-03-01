@@ -47,6 +47,24 @@ sub containerize {
     return $self->container( { element => $e } );
 }
 
+=head2 new
+
+Sets L<HTML::Widget::Element/allow_filter> to false, so that filters added 
+by C<< $widget->filter_all >> won't be applied to Span elements.
+
+Sets L<HTML::Widget::Element/allow_constraint> to false, so that constraints 
+added by C<< $widget->constraint_all >> won't be applied to Span elements.
+
+=cut
+
+sub new {
+    my $self = shift->NEXT::new(@_);
+
+    $self->allow_filter(0)->allow_constraint(0);
+
+    return $self;
+}
+
 =head1 SEE ALSO
 
 L<HTML::Widget::Element>

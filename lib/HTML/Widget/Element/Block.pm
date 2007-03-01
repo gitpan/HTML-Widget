@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use base 'HTML::Widget::Element::NullContainer';
 use NEXT;
+use Carp qw/croak/;
 
 __PACKAGE__->mk_classaccessor(
     block_container_class => 'HTML::Widget::BlockContainer' );
@@ -39,11 +40,13 @@ sub new {
 
 =head2 type
 
-Default value is div, to create a <div> container.
+Default value is div, to create a <div> container. Can be changed to 
+create a tag of any type.
 
 =head2 element
 
-Add a new element to the Widget.  See L<HTML::Widget> for full documentation.
+Add a new element, nested within this Block. See L<HTML::Widget/element> 
+for full documentation.
 
 =head2 push_content
 
@@ -67,7 +70,7 @@ sub block_container {
     my $file = $class . ".pm";
     $file =~ s{::}{/}g;
     eval { require $file };
-    die "Unable to load block container class $class: $@" if $@;
+    croak "Unable to load block container class $class: $@" if $@;
 
     return $class->new( { passive => $self->passive, %$attributes } );
 }

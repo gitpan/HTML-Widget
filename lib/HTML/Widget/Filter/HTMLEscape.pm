@@ -32,6 +32,12 @@ sub filter {
     return $value;
 }
 
+=head1 BUGS
+
+L<HTML::Element> now checks for, and refuses to escape already-escaped 
+characters. This means that if you wish to double-escape characters, you must 
+now do it yourself.
+
 =head1 AUTHOR
 
 Lyo Kato, C<lyo.kato@gmail.com>

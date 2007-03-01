@@ -25,10 +25,14 @@ $w->filter( 'HTMLEscape', 'foo' );
     is( $f->param('foo'), '&lt;p&gt;message&lt;/p&gt;', 'foo value' );
     is( $f->param('bar'), '<b>23</b>', 'bar value' );
 
+SKIP: {
+    skip "HTML::Element now checks for already-escaped characters - Won't fix", 1;
+    
     like(
         "$f",
         qr{\Q value="&#38;lt;p&#38;gt;message&#38;lt;/p&#38;gt;" }x,
         'XML output is double encoded'
     );
+    }
 }
 

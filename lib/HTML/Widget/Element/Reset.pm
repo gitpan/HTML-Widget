@@ -2,13 +2,8 @@ package HTML::Widget::Element::Reset;
 
 use warnings;
 use strict;
-use base 'HTML::Widget::Element';
+use base 'HTML::Widget::Element::Button';
 use NEXT;
-
-__PACKAGE__->mk_accessors(qw/value retain_default/);
-
-# alias
-*label = \&value;
 
 =head1 NAME
 
@@ -21,46 +16,36 @@ HTML::Widget::Element::Reset - Reset Element
 
 =head1 DESCRIPTION
 
-Reset Element.
+Reset button element.
+
+Inherits all methods from L<HTML::Widget::Element::Button>.
+
+Automatically sets L<type|HTML::Widget::Element::Button/type> to C<reset>.
 
 =head1 METHODS
 
-=head2 value
+=head2 new
+
+=cut
+
+sub new {
+    return shift->NEXT::new(@_)->type('reset');
+}
 
 =head2 label
 
-The value of this Reset element. Is also used by the browser as the 
+=head2 value
+
+Sets the form field value. Is also used by the browser as the 
 button label.
 
 If not set, the browser will usually display the label as "Reset".
 
 L</label> is an alias for L</value>.
 
-=head2 retain_default
-
-If true, overrides the default behaviour, so that after a field is missing 
-from the form submission, the xml output will contain the default value, 
-rather than be empty.
-
-=head2 containerize
-
-=cut
-
-sub containerize {
-    my ( $self, $w, $value, $errors, $args ) = @_;
-
-    $value = $self->value
-        if ( not defined $value )
-        and $self->retain_default || not $args->{submitted};
-
-    my $i = $self->mk_input( $w, { type => 'reset', value => $value } );
-
-    return $self->container( { element => $i } );
-}
-
 =head1 SEE ALSO
 
-L<HTML::Widget::Element>
+L<HTML::Widget::Element::Button>, L<HTML::Widget::Element>
 
 =head1 AUTHOR
 

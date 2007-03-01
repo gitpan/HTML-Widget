@@ -7,6 +7,7 @@ use HTML::Widget::Container;
 use HTML::Widget::Error;
 use HTML::Element;
 use Storable 'dclone';
+use Carp qw/carp croak/;
 
 __PACKAGE__->mk_accessors(
     qw/attributes container subcontainer strict submitted
@@ -374,6 +375,8 @@ Returns valid parameters with a CGI.pm-compatible param method. (read-only)
 sub param {
     my $self = shift;
 
+    carp 'param method is readonly' if @_ > 1;
+
     if ( @_ == 1 ) {
 
         my $param = shift;
@@ -448,7 +451,7 @@ Only consider parameters that pass at least one constraint valid.
 
 Return Value: $bool
 
-Returns true if C<<$widget->process>> received a C<<$query>> object.
+Returns true if C<< $widget->process >> received a C<$query> object.
 
 L</is_submitted> is an alias for L</submitted>.
 
@@ -493,7 +496,7 @@ CHECK: for my $name (@names) {
     return 0;
 }
 
-=head2 add_valid <key>,<value>
+=head2 add_valid
 
 Arguments: $key, $value
 
@@ -540,7 +543,7 @@ An example of use.
 
 In this example, the C<$result> initially contains no errors. If the login()
 is unsuccessful though, add_error() is used to add an error to the password
-Element. If the user is shown the form again using C<$result->as_xml()>,
+Element. If the user is shown the form again using C<< $result->as_xml >>,
 they will be shown an appropriate error message alongside the password
 field.
 
@@ -549,7 +552,7 @@ field.
 sub add_error {
     my ( $self, $args ) = @_;
 
-    die "name argument required" unless defined $args->{name};
+    croak "name argument required" unless defined $args->{name};
 
     $args->{type}    = 'Custom'        if not exists $args->{type};
     $args->{message} = 'Invalid Input' if not exists $args->{message};

@@ -21,6 +21,10 @@ HTML Strip Filter.
 
 =head1 METHODS
 
+=head2 allow
+
+Accepts a list of HTML tags which shouldn't be stripped
+
 =head2 filter
 
 =cut

@@ -5,7 +5,10 @@ use strict;
 use base 'HTML::Widget::Element';
 use NEXT;
 
-__PACKAGE__->mk_accessors(qw/value content type retain_default/);
+__PACKAGE__->mk_accessors(
+    qw/value content type _src height width
+        retain_default/
+);
 
 # alias
 *label = \&value;
@@ -24,6 +27,14 @@ HTML::Widget::Element::Button - Button Element
 Button Element.
 
 =head1 METHODS
+
+=head2 new
+
+=cut
+
+sub new {
+    return shift->NEXT::new(@_)->type('button');
+}
 
 =head2 value
 
@@ -44,9 +55,24 @@ This means that any html markup may be used to display the button.
 
 =head2 type
 
-Only used if L</content> is set.
+Valid values are C<button>, C<submit>, C<reset> and C<image>.
 
-Defaults to C<button>. Also valid is C<submit> and C<reset>.
+=head2 src
+
+If set, the element will be rendered as an image button, using this url as 
+the image.
+
+Automatically sets L</type> to C<image>.
+
+=cut
+
+sub src {
+    my $self = shift;
+
+    $self->type('image') if @_;
+
+    return $self->_src(@_);
+}
 
 =head2 retain_default
 
@@ -70,17 +96,22 @@ sub containerize {
         and $self->retain_default || not $args->{submitted};
 
     my $i;
+    my %args = (
+        type  => $self->type,
+        value => $value,
+    );
+
+    $args{src}    = $self->src    if defined $self->src;
+    $args{height} = $self->height if defined $self->height;
+    $args{width}  = $self->width  if defined $self->width;
+
     if ( defined $self->content && length $self->content ) {
-        my $type = $self->type() if defined $self->type;
-        $type = 'button' if not defined $type;
-
-        $i = $self->mk_tag( $w, 'button', { type => $type, value => $value } );
-
+        $i = $self->mk_tag( $w, 'button', \%args );
         $i->push_content(
             HTML::Element->new( '~literal', text => $self->content ) );
     }
     else {
-        $i = $self->mk_input( $w, { type => 'button', value => $value } );
+        $i = $self->mk_input( $w, \%args );
     }
 
     return $self->container( { element => $i } );

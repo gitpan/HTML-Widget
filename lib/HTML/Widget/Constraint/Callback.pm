@@ -21,7 +21,8 @@ HTML::Widget::Constraint::Callback - Callback Constraint
 
 =head1 DESCRIPTION
 
-Callback Constraint.
+A callback constraint which will only be run once for each submitted value 
+of each named field.
 
 =head1 METHODS
 

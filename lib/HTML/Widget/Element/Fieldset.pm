@@ -42,8 +42,10 @@ sub _pre_content_elements {
     my ( $self, $w ) = @_;
     return () unless $self->legend;
 
-    my $id = $self->id($w);
-    my $l = HTML::Element->new( 'legend', id => "$id\_legend" );
+    my %args;
+    $args{id} = $self->id($w) . "_legend" if defined $self->name;
+    my $l = HTML::Element->new( 'legend', %args );
+
     $l->push_content( $self->legend );
     return ($l);
 }

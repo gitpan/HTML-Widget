@@ -44,6 +44,15 @@ sub process {
 
 sub default_message {'Alternative Missing'}
 
+=head2 render_errors
+
+Arguments: @names
+
+A list of element names for which an error should be displayed.
+
+If this is not set, the default behaviour is for the error to be displayed 
+for all of the Constraint's named elements.  
+
 =head1 AUTHOR
 
 Sebastian Riedel, C<sri@oook.de>

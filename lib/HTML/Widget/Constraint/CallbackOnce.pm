@@ -65,6 +65,15 @@ sub process {
     return $results;
 }
 
+=head2 render_errors
+
+Arguments: @names
+
+A list of element names for which an error should be displayed.
+
+If this is not set, the default behaviour is for the error to be displayed 
+for all of the Constraint's named elements.  
+
 =head2 validate
 
 perform the actual validation.

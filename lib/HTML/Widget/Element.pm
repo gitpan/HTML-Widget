@@ -6,10 +6,11 @@ use base qw/HTML::Widget::Accessor Class::Data::Accessor/;
 use HTML::Element;
 use HTML::Widget::Container;
 use NEXT;
+use Carp qw/croak/;
 
 __PACKAGE__->mk_classaccessor( container_class => 'HTML::Widget::Container' );
 
-__PACKAGE__->mk_accessors(qw/name passive/);
+__PACKAGE__->mk_accessors(qw/name passive allow_filter allow_constraint/);
 __PACKAGE__->mk_attr_accessors(qw/class/);
 
 =head1 NAME
@@ -56,8 +57,8 @@ attributes, instead the attributes are added to the current attributes
 hash.
 
 This means the attributes hash-ref can no longer be emptied using 
-C<$e->attributes( { } );>. Instead, you may use 
-C<%{ $e->attributes } = ();>.
+C<< $e->attributes( { } ); >>. Instead, you may use 
+C<< %{ $e->attributes } = (); >>.
 
 As a special case, if no arguments are passed, the return value is a 
 hash-ref of attributes instead of the object reference. This provides 
@@ -83,7 +84,7 @@ sub container {
     my $file = $class . ".pm";
     $file =~ s{::}{/}g;
     eval { require $file };
-    die "Unable to load element container class $class: $@" if $@;
+    croak "Unable to load element container class $class: $@" if $@;
     return $class->new( { passive => $self->passive, %$attributes } );
 }
 
@@ -99,6 +100,10 @@ Creates a element id.
 
 sub id {
     my ( $self, $w, $id ) = @_;
+    my $name = $self->name;
+
+    return unless defined($name) || defined($id);
+
     return $w->name . '_' . ( $id || $self->name );
 }
 
@@ -128,6 +133,11 @@ sub mk_error {
     return
         if ( !$w->{empty_errors}
         && ( !defined($errors) || !scalar(@$errors) ) );
+
+    my $no_render_count = 0;
+    $no_render_count += $_->no_render ? 1 : 0 for @$errors;
+    return if !$w->{empty_errors} && $no_render_count == scalar @$errors;
+
     my $id        = $self->attributes->{id} || $self->id($w);
     my $cont_id   = $id . '_errors';
     my $container = HTML::Element->new(
@@ -136,6 +146,7 @@ sub mk_error {
         class => 'error_messages'
     );
     for my $error (@$errors) {
+        next if !$w->{empty_errors} && $error->no_render;
         my $e_id    = $id . '_error_' . lc( $error->{type} );
         my $e_class = lc( $error->{type} . '_errors' );
         my $e = HTML::Element->new( 'span', id => $e_id, class => $e_class );
@@ -244,7 +255,8 @@ Defines if element gets automatically rendered.
 
 Arguments: $widget
 
-Called whenever $widget->process() gets called, before $element->process().
+Called whenever C<< $widget->process >> gets called, before 
+C<< $element->process >>.
 
 =cut
 
@@ -256,7 +268,7 @@ Arguments: \%params, \@uploads
 
 Return Value: \@errors
 
-Called whenever $widget->process()
+Called whenever C<< $widget->process >> is called.
 
 Returns an arrayref of L<HTML::Widget::Error> objects.
 
@@ -270,7 +282,9 @@ Arguments: $widget, $value, \@errors
 
 Return Value: $container_tag
 
-Containerize the element, label and error for later rendering. Uses HTML::Widget::Container by default, but this can be over-ridden on a class or instance basis via L<container_class>.
+Containerize the element, label and error for later rendering. 
+Uses L<HTML::Widget::Container> by default, but this can be over-ridden on 
+a class or instance basis via L</container_class>.
 
 =cut
 
@@ -315,6 +329,26 @@ containing this element.
 =cut
 
 sub find_elements { return (shift); }
+
+=head2 new
+
+=cut
+
+sub new {
+    return shift->NEXT::new(@_)->allow_filter(1)->allow_constraint(1);
+}
+
+=head2 allow_filter
+
+Used by C<< $widget->filter_all >>. If false, the filter won't be added.
+
+Default true.
+
+=head2 allow_constraint
+
+Used by C<< $widget->constraint_all >>. If false, the filter won't be added.
+
+Default true.
 
 =head1 AUTHOR
 
